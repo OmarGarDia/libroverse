@@ -1,0 +1,23 @@
+# Ignorar las carpetas de dependencias de cada subproyecto
+/backend/vendor/
+/backend/node_modules/
+/backend/.env
+/frontend/node_modules/
+/frontend/.env.local
+/frontend/build/
+
+# Ignorar logs, cache, etc.
+/backend/storage/*.key
+/backend/public/hot
+/backend/public/storage
+/backend/bootstrap/cache/*.php
+
+# macOS
+.DS_Store
+.env.local
+
+# npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
