@@ -3,27 +3,35 @@ import { Navigation } from "@/components/Navigation";
 import { AuthSection } from "@/components/AuthSection";
 import { DashboardContent } from "@/components/DashboardContent";
 import { WelcomeSection } from "@/components/WelcomeSection";
+import { authService } from "@/services/authService";
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const checkAuthStatus = async () => {
     try {
+      setIsLoading(true);
       console.log("Verificando estado de autenticación...");
-      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-      if (isLoggedIn) {
-        setUserData({ name: "Usuario Demo", email: "demo@ejemplo.com" });
+
+      const user = await authService.checkAuth();
+      if (user) {
+        setUserData(user);
         setIsAuthenticated(true);
+        console.log("Usuario autenticado", user);
       } else {
         setIsAuthenticated(false);
         setUserData(null);
+        console.log("Usuario no autenticado");
       }
     } catch (error) {
-      console.log("Usuario no autenticado:", error);
+      console.log("Error verificando autenticación", error);
       setIsAuthenticated(false);
       setUserData(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -31,21 +39,34 @@ const Index = () => {
     checkAuthStatus();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      localStorage.removeItem("isLoggedIn");
+      await authService.logout();
       setIsAuthenticated(false);
       setUserData(null);
-      console.log("Sesión cerrada correctamente.");
+      console.log("Sesion cerrada correctamente");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
   };
 
   const handleAuthSuccess = () => {
-    localStorage.setItem("isLoggedIn", "true");
     checkAuthStatus();
   };
+
+  if (isLoading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#FDFBF6" }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p style={{ color: "#7F8C8D" }}>Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

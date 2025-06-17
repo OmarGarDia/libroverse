@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { authService } from "@/services/authService";
 
 export const LoginForm = ({ onSuccess }) => {
   const [email, setEmail] = useState("");
@@ -14,17 +15,20 @@ export const LoginForm = ({ onSuccess }) => {
     setIsLoading(true);
 
     try {
-      // Simular llamada a API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const loginData = {
+        email,
+        password,
+      };
 
-      if (email && password) {
-        toast.success("¡Inicio de sesión exitoso!");
-        onSuccess();
-      } else {
-        toast.error("Por favor completa todos los campos");
-      }
+      const response = await authService.login(loginData);
+
+      toast.success(response.message || "Inicio de sesión exitoso");
+      onSuccess();
     } catch (error) {
-      toast.error("Error al iniciar sesión");
+      console.error("Error en el login", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error al iniciar sesión"
+      );
     } finally {
       setIsLoading(false);
     }

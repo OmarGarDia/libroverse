@@ -3,9 +3,11 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { toast } from "sonner";
+import { authService } from "@/services/authService";
 
 const RegisterForm = ({ onSuccess }) => {
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,16 +23,22 @@ const RegisterForm = ({ onSuccess }) => {
         return;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const registerData = {
+        name,
+        username,
+        email,
+        password,
+        password_confirmation: confirmPassword,
+      };
 
-      if (name && email && password) {
-        toast.success("Usuario registrado exitosamente");
-        onSuccess();
-      } else {
-        toast.error("Todos los campos son obligatorios");
-      }
+      const response = await authService.register(registerData);
+      toast.success(response.message || "Cuenta creada exitosamente");
+      onSuccess();
     } catch (error) {
-      toast.error("Error al registrar el usuario");
+      console.error("Error en registro", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error al crear la cuenta"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +58,24 @@ const RegisterForm = ({ onSuccess }) => {
           placeholder="Ingresa tu nombre completo"
           required
           style={{ borderColor: "#7F8C8D", backgroundColor: "#FDFBF6" }}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="username" style={{ color: "#34495E" }}>
+          Nombre de usuario
+        </Label>
+        <Input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="@tunombredeusuario"
+          required
+          className="h-12 text-base"
+          style={{
+            borderColor: "#7F8C8D",
+            backgroundColor: "#FDFBF6",
+          }}
         />
       </div>
       <div className="space-y-2">
