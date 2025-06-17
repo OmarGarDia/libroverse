@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -19,8 +20,16 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'bio',
+        'avatar',
+        'birth_date',
+        'location',
+        'reading_preferences',
+        'books_read',
+        'is_active',
     ];
 
     /**
@@ -43,6 +52,26 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'birth_date' => 'date',
+            'reading_preferences' => 'array',
+            'books_read' => 'integer',
+            'is_active' => 'boolean',
+            'last_activity' => 'datetime',
         ];
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function hasRole($role)
+    {
+        return $this->roles->contains('name', $role);
+    }
+
+    public function hasPermission($permission)
+    {
+        return $this->roles->flatMap->permissions->contains('name', $permission);
     }
 }

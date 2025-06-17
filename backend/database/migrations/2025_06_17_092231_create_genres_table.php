@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('genres', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->string('color', 7)->default('#6B7280');
             $table->timestamps();
         });
     }

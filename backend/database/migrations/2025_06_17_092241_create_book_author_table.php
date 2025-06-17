@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('book_author', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('author_id')->constrained()->onDelete('cascade');
+            $table->foreignId('book_id')->constrained()->onDelete('cascade');
+            $table->enum('role', ['author', 'co-author', 'editor', 'translator'])->default('author');
             $table->timestamps();
+
+            $table->unique(['book_id', 'author_id']);
         });
     }
 

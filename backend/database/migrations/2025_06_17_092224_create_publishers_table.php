@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('publishers', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('website')->nullable();
+            $table->string('country')->nullable();
+            $table->year('founded_year')->nullable();
             $table->timestamps();
         });
     }

@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('user_bookshelves', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('color', 7)->default('#6B7280');
+            $table->boolean('is_public')->default(false);
+            $table->integer('books_count')->default(0);
             $table->timestamps();
+
+            $table->index(['user_id', 'is_public']);
         });
     }
 
