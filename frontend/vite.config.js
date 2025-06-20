@@ -10,4 +10,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 5173,
+    origin: "http://localhost:5173",
+    cors: {
+      origin: "http://localhost:8000",
+      credentials: true,
+    },
+  },
 });

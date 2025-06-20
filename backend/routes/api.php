@@ -17,12 +17,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 |
 */
 
-Route::get('/sanctum/csrf-cookie', function (Request $request) { // Esto será /sanctum/csrf-cookie
-    return response()->noContent();
-});
-
-Route::post('/register', [RegisteredUserController::class, 'store']) // Esto será /api/register
-    ->middleware('guest');
+Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('api.guest'); // Esto será /api/register
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']) // Esto será /api/login
     ->middleware('guest');

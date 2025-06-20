@@ -7,6 +7,11 @@ class AuthService {
       Accept: "application/json",
     };
 
+    const csrfToken = this.getCookie("XSRF-TOKEN");
+    if (csrfToken) {
+      headers["X-XSRF-TOKEN"] = decodeURIComponent(csrfToken);
+    }
+
     if (includeAuth) {
       const token = localStorage.getItem("auth_token");
       if (token) {
@@ -17,30 +22,55 @@ class AuthService {
     return headers;
   }
 
+  getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
   async register(data) {
+    await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+      credentials: "include",
+    });
+
     const response = await fetch(`${API_BASE_URL}/register`, {
       method: "POST",
       headers: this.getHeaders(),
+      credentials: "include",
       body: JSON.stringify(data),
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error en el registro");
+
+    const contentType = response.headers.get("content-type");
+
+    let result;
+    if (contentType && contentType.includes("application/json")) {
+      result = await response.json();
+    } else {
+      const text = await response.text();
+      console.error("Respuesta cruda no JSON:", text);
+      throw new Error("Respuesta inválida del servidor");
     }
 
-    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || "Error en el registro");
+    }
 
     localStorage.setItem("auth_token", result.token);
-    localStorage.setItem("user_data", JSON.Stringify(result.user));
+    localStorage.setItem("user_data", JSON.stringify(result.user));
     localStorage.setItem("isLoggedIn", "true");
 
     return result;
   }
 
   async login(data) {
+    await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+      credentials: "include",
+    });
+
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
       headers: this.getHeaders(),
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -52,7 +82,7 @@ class AuthService {
     const result = await response.json();
 
     localStorage.setItem("auth_token", result.token);
-    localStorage.setItem("user_data", JSON.Stringify(result.user));
+    localStorage.setItem("user_data", JSON.stringify(result.user));
     localStorage.setItem("isLoggedIn", "true");
 
     return result;
