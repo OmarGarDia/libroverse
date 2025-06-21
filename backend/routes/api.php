@@ -19,8 +19,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('api.guest'); // Esto será /api/register
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store']) // Esto será /api/login
-    ->middleware('guest');
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('api.guest'); // Esto será /api/login
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']) // Esto será /api/logout
     ->middleware('auth:sanctum');

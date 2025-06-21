@@ -18,7 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             HandleCors::class,
             EnsureFrontendRequestsAreStateful::class,
-            ApiGuestMiddleware::class
+        ]);
+
+        $middleware->alias([
+            'api.guest' => ApiGuestMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

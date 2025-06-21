@@ -15,9 +15,13 @@ class ApiGuestMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()) {
+        if ($request->session()->has('login_web_user_id')) {
             return response()->json(['message' => 'Ya estás autenticado'], 403);
         }
+
+        // Alternativamente, para usuarios autenticados por token
+        // if ($request->user() && $request->user()->tokenCan('some-scope')) { ... }
+
         return $next($request);
     }
 }

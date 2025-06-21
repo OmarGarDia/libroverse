@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class RegisteredUserController extends Controller
 {
@@ -36,15 +37,21 @@ class RegisteredUserController extends Controller
         return response()->json([
             'user' => $user,
             'token' => $token,
+            'message' => 'Usuario registrado exitosamente',
         ]);
     }
 
-    public function logout(Request $request)
+    public function destroy(Request $request): Response
     {
+        if ($request->user()?->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
+
         Auth::guard('web')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(['message' => 'Logout exitoso']);
+        return response()->noContent();
     }
 }

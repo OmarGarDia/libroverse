@@ -75,8 +75,16 @@ class AuthService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Error en el inicio de sesión");
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error en el inicio de sesión");
+      } else {
+        const text = await response.text();
+        console.error("Respuesta cruda no JSON:", text);
+        throw new Error("Respuesta inválida del servidor");
+      }
     }
 
     const result = await response.json();
@@ -89,34 +97,42 @@ class AuthService {
   }
 
   async logout() {
+    const token = localStorage.getItem("auth_token");
+
     try {
-      await fetch(`${API_BASE_URL}/logout`, {
+      const response = await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         headers: this.getHeaders(true),
+        credentials: "include",
       });
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("user_data");
-      localStorage.removeItem("isLoggedIn");
+
+      if (!response.ok) {
+        console.warn(
+          "Error en el logout del servidor, pero continuando con limpieza local"
+        );
+      }
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error("Error en el logout del servidor", error);
     } finally {
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("user_data");
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("isLoggedIn");
     }
   }
 
   async checkAuth() {
     const token = localStorage.getItem("auth_token");
     const userData = localStorage.getItem("user_data");
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-    if (!token || !userData) {
+    if (!token || !userData || isLoggedIn !== "true") {
       return null;
     }
 
     try {
       const response = await fetch(`${API_BASE_URL}/user`, {
-        headers: this.getHeaders(true),
+        headers: this.getHeaders(),
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -124,9 +140,9 @@ class AuthService {
         return null;
       }
 
+      const serverUser = await response.json();
       return JSON.parse(userData);
     } catch (error) {
-      console.error("Error verificando autenticación", error);
       this.logout();
       return null;
     }
@@ -138,10 +154,10 @@ class AuthService {
   }
 
   isAuthenticated() {
-    return (
+    const result =
       localStorage.getItem("isLoggedIn") === "true" &&
-      !!localStorage.getItem("auth_token")
-    );
+      !!localStorage.getItem("auth_token");
+    return result;
   }
 }
 

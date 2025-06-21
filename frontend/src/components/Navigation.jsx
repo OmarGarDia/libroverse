@@ -88,7 +88,7 @@ export const Navigation = ({
               <Button
                 onClick={onLogout}
                 variant="destructive"
-                className="px-6 py-2 rounded-full font-semibold shadow-lg transform hover:slace-105 transition-all duration-200"
+                className="px-6 py-2 rounded-full font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 Cerrar Sesión
               </Button>
