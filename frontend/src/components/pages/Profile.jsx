@@ -11,12 +11,6 @@ import { ActivityHistory } from "@/components/profile/ActivityHistory";
 const Profile = ({ userData, isAuthenticated, onLogout }) => {
   const [activeTab, setActiveTab] = useState("personal");
 
-  console.log("👤 PROFILE: Props recibidas:", {
-    isAuthenticated,
-    userData: !!userData,
-    userDataDetails: userData,
-  });
-
   const renderTabContent = () => {
     switch (activeTab) {
       case "personal":
@@ -33,12 +27,6 @@ const Profile = ({ userData, isAuthenticated, onLogout }) => {
         return <PersonalInfo userData={userData} />;
     }
   };
-
-  console.log("👤 PROFILE: Pasando a Navigation:", {
-    isAuthenticated,
-    userData: !!userData,
-    showLogin: false,
-  });
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FDFBF6" }}>

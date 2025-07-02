@@ -3,26 +3,32 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Edit, Save, X } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { useMutation } from "@tanstack/react-query";
-
+import { authService } from "@/services/authService";
 export const PersonalInfo = () => {
   const { user, setUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+
   const [form, setForm] = useState({
     name: user?.name || "",
+    username: user?.username || "",
     email: user?.email || "",
     bio: user?.bio || "",
+    birth_date: user?.birth_date || "",
+    location: user?.location || "",
+    reading_preferences: user?.reading_preferences || "",
   });
 
   const updateUserMutation = useMutation({
     mutationFn: async (data) => {
+      await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+        credentials: "include",
+      });
+
       const response = await fetch(`http://localhost:8000/api/user`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
+        headers: authService.getHeaders(true),
         credentials: "include",
         body: JSON.stringify(data),
       });
@@ -49,7 +55,13 @@ export const PersonalInfo = () => {
   };
 
   const handleSave = () => {
-    updateUserMutation.mutate(form);
+    const formattedData = {
+      ...form,
+      birth_date: form.birth_date
+        ? new Date(form.birth_date).toISOString().slice(0, 10)
+        : null,
+    };
+    updateUserMutation.mutate(formattedData);
   };
 
   return (
@@ -100,15 +112,16 @@ export const PersonalInfo = () => {
         <CardContent className="space-y-4">
           {[
             { label: "Nombre completo", name: "name" },
+            { label: "Nombre de usuario", name: "username", disabled: true },
             { label: "Email", name: "email", type: "email" },
-            { label: "Fecha de nacimiento", name: "birthday", type: "date" },
+            { label: "Fecha de nacimiento", name: "birth_date", type: "date" },
             { label: "Ubicación", name: "location" },
-          ].map(({ label, name, type = "text" }) => (
+          ].map(({ label, name, type = "text", disabled = false }) => (
             <div key={name}>
               <label className="block text-sm font-medium mb-1 text-[#2C3E50]">
                 {label}
               </label>
-              {isEditing ? (
+              {isEditing && !disabled ? (
                 <Input
                   type={type}
                   name={name}
@@ -118,7 +131,7 @@ export const PersonalInfo = () => {
                 />
               ) : (
                 <p className="p-2 rounded bg-[#F8F9FA] text-[#2C3E50]">
-                  {name === "birthday" && form[name]
+                  {name === "birth_date" && form[name]
                     ? new Date(form[name]).toLocaleDateString("es-ES")
                     : form[name]}
                 </p>
@@ -148,25 +161,26 @@ export const PersonalInfo = () => {
               />
             ) : (
               <p className="p-2 rounded bg-[#F8F9FA] text-[#2C3E50]">
-                {form.bio}
+                {form.bio || "Sin biografía"}
               </p>
             )}
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1 text-[#2C3E50]">
-              Género favorito
+              Preferencias de lectura
             </label>
             {isEditing ? (
               <Input
-                name="favoriteGenre"
-                value={form.favoriteGenre}
+                name="reading_preferences"
+                value={form.reading_preferences}
                 onChange={handleChange}
                 className="border-2 focus:border-[#4DB6AC]"
+                placeholder="Ej: Fantasía, Misterio, Ciencia ficción"
               />
             ) : (
               <p className="p-2 rounded bg-[#F8F9FA] text-[#2C3E50]">
-                {form.favoriteGenre}
+                {form.reading_preferences || "No especificado"}
               </p>
             )}
           </div>

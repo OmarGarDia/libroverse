@@ -110,24 +110,12 @@ class AuthService {
   }
 
   async logout() {
-    console.log("🔓 Iniciando proceso de logout...");
-    console.log(
-      "🔓 Token antes del logout:",
-      localStorage.getItem("auth_token") ? "Existe" : "No existe"
-    );
-    console.log(
-      "🔓 isLoggedIn antes del logout:",
-      localStorage.getItem("isLoggedIn")
-    );
-
     try {
       const response = await fetch(`${API_BASE_URL}/logout`, {
         method: "POST",
         headers: this.getHeaders(true),
         credentials: "include",
       });
-
-      console.log("🔓 Respuesta del servidor logout:", response.status);
 
       if (!response.ok) {
         console.warn(
@@ -137,64 +125,35 @@ class AuthService {
     } catch (error) {
       console.error("🔓 Error al cerrar sesión en servidor:", error);
     } finally {
-      console.log("🔓 Limpiando datos locales...");
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_data");
       localStorage.removeItem("isLoggedIn");
-
-      console.log("🔓 Datos después de logout:");
-      console.log(
-        "🔓 Token después del logout:",
-        localStorage.getItem("auth_token")
-      );
-      console.log(
-        "🔓 isLoggedIn después del logout:",
-        localStorage.getItem("isLoggedIn")
-      );
-      console.log(
-        "🔓 userData después del logout:",
-        localStorage.getItem("user_data")
-      );
     }
   }
 
   async checkAuth() {
-    console.log("🔍 Verificando autenticación...");
-
     const token = localStorage.getItem("auth_token");
     const userData = localStorage.getItem("user_data");
     const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-    console.log("🔍 Estado localStorage:");
-    console.log("🔍 - Token existe:", !!token);
-    console.log("🔍 - UserData existe:", !!userData);
-    console.log("🔍 - isLoggedIn:", isLoggedIn);
-
     if (!token || !userData || isLoggedIn !== "true") {
-      console.log("🔍 No hay datos de autenticación válidos en localStorage");
       return null;
     }
 
     try {
-      console.log("🔍 Verificando token con el servidor...");
       const response = await fetch(`${API_BASE_URL}/user`, {
         headers: this.getHeaders(true),
         credentials: "include",
       });
 
-      console.log("🔍 Respuesta del servidor:", response.status);
-
       if (!response.ok) {
-        console.log("🔍 Token inválido, limpiando datos...");
         this.logout();
         return null;
       }
 
       const serverUser = await response.json();
-      console.log("🔍 Usuario válido del servidor:", serverUser);
       return JSON.parse(userData);
     } catch (error) {
-      console.error("🔍 Error verificando autenticación:", error);
       this.logout();
       return null;
     }
@@ -209,7 +168,6 @@ class AuthService {
     const result =
       localStorage.getItem("isLoggedIn") === "true" &&
       !!localStorage.getItem("auth_token");
-    console.log("🔍 isAuthenticated resultado:", result);
     return result;
   }
 }

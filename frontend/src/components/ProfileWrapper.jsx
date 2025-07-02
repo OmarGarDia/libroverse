@@ -10,44 +10,21 @@ const ProfileWrapper = () => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      console.log("🔄 PROFILE WRAPPER: Verificando autenticación...");
-
-      // Verificar localStorage directamente
-      console.log("🔄 PROFILE WRAPPER: Estado localStorage directo:");
-      console.log(
-        "🔄 PROFILE WRAPPER: - auth_token:",
-        localStorage.getItem("auth_token") ? "Existe" : "No existe"
-      );
-      console.log(
-        "🔄 PROFILE WRAPPER: - user_data:",
-        localStorage.getItem("user_data") ? "Existe" : "No existe"
-      );
-      console.log(
-        "🔄 PROFILE WRAPPER: - isLoggedIn:",
-        localStorage.getItem("isLoggedIn")
-      );
 
       const isAuth = authService.isAuthenticated();
-      console.log("🔄 PROFILE WRAPPER: authService.isAuthenticated():", isAuth);
 
       const user = await authService.checkAuth();
-      console.log("🔄 PROFILE WRAPPER: checkAuth result:", user);
 
       if (user && isAuth) {
         setUserData(user);
         setIsAuthenticated(true);
-        console.log("✅ PROFILE WRAPPER: Usuario autenticado", user);
       } else {
         setIsAuthenticated(false);
         setUserData(null);
-        console.log("❌ PROFILE WRAPPER: Usuario NO autenticado");
-        console.log("❌ PROFILE WRAPPER: - user:", user);
-        console.log("❌ PROFILE WRAPPER: - isAuth:", isAuth);
-        console.log("❌ PROFILE WRAPPER: Redirigiendo a home...");
+
         window.location.href = "/";
       }
     } catch (error) {
-      console.error("❌ PROFILE WRAPPER: Error:", error);
       setIsAuthenticated(false);
       setUserData(null);
       window.location.href = "/";
@@ -57,7 +34,6 @@ const ProfileWrapper = () => {
   };
 
   useEffect(() => {
-    console.log("🔄 PROFILE WRAPPER: useEffect ejecutándose");
     checkAuthStatus();
   }, []);
 
