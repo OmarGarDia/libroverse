@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import {
+  Menu,
+  ChevronDown,
+  User,
+  Settings,
+  MessageCircle,
+  LogOut,
+} from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Link } from "react-router-dom";
 
 export const Navigation = ({
   isAuthenticated,
@@ -11,6 +19,18 @@ export const Navigation = ({
   onToggleAuth,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const navItems = [
     { label: "Inicio", href: "#" },
@@ -59,7 +79,8 @@ export const Navigation = ({
             Libro<span style={{ color: "#4DB6AC" }}>Verse</span>
           </span>
         </a>
-        {/* Desktop Navigation*/}
+
+        {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
           {navItems.map((item) => (
             <a
@@ -67,32 +88,101 @@ export const Navigation = ({
               href={item.href}
               className="text-lg font-semibold transition-colors duration-200 hover:opacity-80"
               style={{ color: "#FDFBF6" }}
-              onMouseEnter={(e) => {
-                e.target.style.color = "#4DB6AC";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.color = "#FDFBF6";
-              }}
+              onMouseEnter={(e) => (e.target.style.color = "#4DB6AC")}
+              onMouseLeave={(e) => (e.target.style.color = "#FDFBF6")}
             >
               {item.label}
             </a>
           ))}
         </div>
-        {/* Desktop Auth Section*/}
-        <div className="hidden md:block">
+
+        {/* Desktop Auth Section */}
+        <div className="hidden md:block relative" ref={userMenuRef}>
           {isAuthenticated ? (
-            <div className="flex items-center space-x-4">
-              <span className="font-semibold" style={{ color: "#FDFBF6" }}>
-                Hola, {userData ? userData.name.split(" ")[0] : "Usuario"}
-              </span>
-              <Button
-                onClick={onLogout}
-                variant="destructive"
-                className="px-6 py-2 rounded-full font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+            <>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center space-x-3 px-4 py-2 rounded-full font-semibold transition-all duration-200 hover:bg-opacity-20 hover:bg-white focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-400"
+                style={{ color: "#FDFBF6" }}
               >
-                Cerrar Sesión
-              </Button>
-            </div>
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "#4DB6AC" }}
+                >
+                  <User className="w-4 h-4" style={{ color: "#FDFBF6" }} />
+                </div>
+                <span className="text-lg">
+                  {userData ? userData.name.split(" ")[0] : "Usuario"}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    userMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {userMenuOpen && (
+                <div
+                  className="absolute right-0 mt-3 w-56 rounded-lg shadow-xl py-2 z-50 border"
+                  style={{
+                    backgroundColor: "#FDFBF6",
+                    borderColor: "#4DB6AC",
+                    boxShadow: "0 10px 25px rgba(44, 62, 80, 0.3)",
+                  }}
+                >
+                  <div
+                    className="px-4 py-3 border-b"
+                    style={{ borderColor: "#E8E8E8" }}
+                  >
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: "#2C3E50" }}
+                    >
+                      {userData?.name || "Usuario"}
+                    </p>
+                    <p className="text-xs" style={{ color: "#7F8C8D" }}>
+                      {userData?.email || "email@ejemplo.com"}
+                    </p>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      to="/perfil"
+                      className="flex items-center w-full py-2 px-4 rounded-lg transition-colors duration-200"
+                      style={{ color: "#4DB6AC" }}
+                      onMouseEnter={(e) => {
+                        const target = e.target;
+                        target.style.backgroundColor = "#34495E";
+                        target.style.color = "#4DB6AC";
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.target;
+                        target.style.backgroundColor = "transparent";
+                        target.style.color = "#4DB6AC";
+                      }}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4 mr-3" />
+                      Mi Perfil
+                    </Link>
+                  </div>
+                  <div
+                    className="border-t py-1"
+                    style={{ borderColor: "#E8E8E8" }}
+                  >
+                    <button
+                      onClick={() => {
+                        onLogout();
+                        setUserMenuOpen(false);
+                      }}
+                      className="flex items-center w-full px-4 py-3 text-sm font-medium transition-colors duration-200 text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="w-4 h-4 mr-3" />
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <Button
               onClick={onToggleAuth}
@@ -102,17 +192,14 @@ export const Navigation = ({
                 color: "#2C3E50",
                 border: "none",
               }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = "#B8941F";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = "#D4AF37";
-              }}
+              onMouseEnter={(e) => (e.target.style.backgroundColor = "#B8941F")}
+              onMouseLeave={(e) => (e.target.style.backgroundColor = "#D4AF37")}
             >
               {showLogin ? "Registrarse" : "Iniciar Sesión"}
             </Button>
           )}
         </div>
+
         {/* Mobile Menu */}
         <div className="md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -152,16 +239,64 @@ export const Navigation = ({
                   style={{ borderColor: "#34495E" }}
                 >
                   {isAuthenticated ? (
-                    <Button
-                      onClick={() => {
-                        onLogout();
-                        setMobileMenuOpen(false);
-                      }}
-                      variant="destructive"
-                      className="w-full py-3 rounded-full font-semibold"
-                    >
-                      Cerrar Sesión
-                    </Button>
+                    <div className="space-y-2">
+                      <div
+                        className="px-4 py-2 mb-4"
+                        style={{ color: "#FDFBF6" }}
+                      >
+                        <p className="font-semibold">
+                          {userData?.name || "Usuario"}
+                        </p>
+                        <p className="text-sm opacity-75">
+                          {userData?.email || "email@ejemplo.com"}
+                        </p>
+                      </div>
+
+                      {[
+                        { icon: User, label: "Mi Perfil", href: "#perfil" },
+                        {
+                          icon: Settings,
+                          label: "Configuración",
+                          href: "#configuracion",
+                        },
+                        {
+                          icon: MessageCircle,
+                          label: "Mensajes",
+                          href: "#mensajes",
+                        },
+                      ].map(({ icon: Icon, label, href }) => (
+                        <a
+                          key={label}
+                          href={href}
+                          className="flex items-center w-full py-2 px-4 rounded-lg transition-colors duration-200"
+                          style={{ color: "#FDFBF6" }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#34495E";
+                            e.target.style.color = "#4DB6AC";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "transparent";
+                            e.target.style.color = "#FDFBF6";
+                          }}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Icon className="w-4 h-4 mr-3" />
+                          {label}
+                        </a>
+                      ))}
+
+                      <Button
+                        onClick={() => {
+                          onLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                        variant="destructive"
+                        className="w-full py-3 rounded-full font-semibold mt-4"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Cerrar Sesión
+                      </Button>
+                    </div>
                   ) : (
                     <Button
                       onClick={() => {

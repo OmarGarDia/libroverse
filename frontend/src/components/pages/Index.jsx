@@ -14,20 +14,39 @@ const Index = () => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      console.log("Verificando estado de autenticación...");
+      console.log("🏠 INDEX: Verificando estado de autenticación...");
+
+      // Primero verificar localStorage directamente
+      console.log("🏠 INDEX: Estado localStorage directo:");
+      console.log(
+        "🏠 INDEX: - auth_token:",
+        localStorage.getItem("auth_token") ? "Existe" : "No existe"
+      );
+      console.log(
+        "🏠 INDEX: - user_data:",
+        localStorage.getItem("user_data") ? "Existe" : "No existe"
+      );
+      console.log(
+        "🏠 INDEX: - isLoggedIn:",
+        localStorage.getItem("isLoggedIn")
+      );
+
+      // Verificar con isAuthenticated
+      const isAuth = authService.isAuthenticated();
+      console.log("🏠 INDEX: authService.isAuthenticated():", isAuth);
 
       const user = await authService.checkAuth();
       if (user) {
         setUserData(user);
         setIsAuthenticated(true);
-        console.log("Usuario autenticado", user);
+        console.log("🏠 INDEX: Usuario autenticado:", user);
       } else {
         setIsAuthenticated(false);
         setUserData(null);
-        console.log("Usuario no autenticado");
+        console.log("🏠 INDEX: Usuario NO autenticado");
       }
     } catch (error) {
-      console.log("Error verificando autenticación", error);
+      console.error("🏠 INDEX: Error verificando autenticación:", error);
       setIsAuthenticated(false);
       setUserData(null);
     } finally {
@@ -36,21 +55,27 @@ const Index = () => {
   };
 
   useEffect(() => {
+    console.log("🏠 INDEX: useEffect ejecutándose");
+
     checkAuthStatus();
   }, []);
 
   const handleLogout = async () => {
     try {
+      console.log("🏠 INDEX: Cerrando sesión...");
+
       await authService.logout();
       setIsAuthenticated(false);
       setUserData(null);
-      console.log("Sesion cerrada correctamente");
+      console.log("🏠 INDEX: Sesión cerrada correctamente.");
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error("🏠 INDEX: Error al cerrar sesión:", error);
     }
   };
 
   const handleAuthSuccess = () => {
+    console.log("🏠 INDEX: handleAuthSuccess ejecutado");
+
     checkAuthStatus();
   };
 
@@ -67,6 +92,8 @@ const Index = () => {
       </div>
     );
   }
+
+  console.log("🏠 INDEX: Renderizando con isAuthenticated:", isAuthenticated);
 
   return (
     <div
