@@ -1,31 +1,28 @@
-import { Camera, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
+import { AvatarUpload } from "./AvatarUpload";
 
-export const ProfileHeader = ({ userData }) => {
+export const ProfileHeader = ({ userData, onUserDataUpdate }) => {
+  const handleAvatarChange = (newAvatarUrl, updatedUserData) => {
+    console.log("Avatar cambiado:", newAvatarUrl);
+
+    if (onUserDataUpdate) {
+      onUserDataUpdate(updatedUserData);
+    }
+  };
   return (
     <div
       className="rounded-xl p-8 shadow-lg mb-8"
       style={{ backgroundColor: "#2C3E50" }}
     >
       <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
-        {/* Avatar */}
-        <div className="relative">
-          <div
-            className="w-32 h-32 rounded-full flex items-center justify-center shadow-xl"
-            style={{ backgroundColor: "#4DB6AC" }}
-          >
-            <User className="w-16 h-16" style={{ color: "#FDFBF6" }} />
-          </div>
-          <Button
-            size="icon"
-            className="absolute bottom-2 right-2 rounded-full shadow-lg"
-            style={{ backgroundColor: "#D4AF37", color: "#2C3E50" }}
-          >
-            <Camera className="w-4 h-4" />
-          </Button>
-        </div>
+        {/* Avatar con Upload */}
+        <AvatarUpload
+          currentAvatar={userData?.avatar}
+          userName={userData?.name}
+          onAvatarChange={handleAvatarChange}
+        />
 
-        {/* User Info */}
+        {/* Info del usuario */}
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl font-bold mb-2" style={{ color: "#FDFBF6" }}>
             {userData?.name || "Usuario"}
@@ -55,7 +52,7 @@ export const ProfileHeader = ({ userData }) => {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Botones de acción */}
         <div className="flex space-x-3">
           <Button
             className="px-6 py-2 rounded-full font-semibold"
