@@ -1,14 +1,16 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Edit, Save, X } from "lucide-react";
-import { useState } from "react";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { Edit, Save, X, Target } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services/authService";
+
 export const PersonalInfo = () => {
   const { user, setUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
 
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -20,13 +22,30 @@ export const PersonalInfo = () => {
     reading_preferences: user?.reading_preferences || "",
   });
 
+  const [readingGoal, setReadingGoal] = useState(user?.reading_goal || 50);
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        bio: user.bio || "",
+        birth_date: user.birth_date || "",
+        location: user.location || "",
+        reading_preferences: user.reading_preferences || "",
+      });
+      setReadingGoal(user.reading_goal || 50);
+    }
+  }, [user]);
+
   const updateUserMutation = useMutation({
     mutationFn: async (data) => {
       await fetch("http://localhost:8000/sanctum/csrf-cookie", {
         credentials: "include",
       });
 
-      const response = await fetch(`http://localhost:8000/api/user`, {
+      const response = await fetch("http://localhost:8000/api/user", {
         method: "PUT",
         headers: authService.getHeaders(true),
         credentials: "include",
@@ -40,13 +59,53 @@ export const PersonalInfo = () => {
 
       return response.json();
     },
-    onSuccess: (updateUser) => {
-      setUser(updateUser);
-      localStorage.setItem("user_data", JSON.stringify(updateUser));
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      localStorage.setItem("user_data", JSON.stringify(updatedUser));
       setIsEditing(false);
     },
     onError: (error) => {
       console.error("Error al actualizar el perfil:", error);
+    },
+  });
+
+  const updateGoalMutation = useMutation({
+    mutationFn: async (goal) => {
+      await fetch("http://localhost:8000/sanctum/csrf-cookie", {
+        credentials: "include",
+      });
+
+      const response = await fetch(
+        "http://localhost:8000/api/user/reading-goal",
+        {
+          method: "PUT",
+          headers: authService.getHeaders(true),
+          credentials: "include",
+          body: JSON.stringify({ reading_goal: goal }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al actualizar la meta");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      if (user) {
+        const updatedUser = {
+          ...user,
+          reading_goal: readingGoal,
+          reading_goal_year: new Date().getFullYear(),
+        };
+        setUser(updatedUser);
+        localStorage.setItem("user_data", JSON.stringify(updatedUser));
+      }
+      setIsEditingGoal(false);
+    },
+    onError: (error) => {
+      console.error("Error al actualizar la meta:", error);
     },
   });
 
@@ -62,6 +121,30 @@ export const PersonalInfo = () => {
         : null,
     };
     updateUserMutation.mutate(formattedData);
+  };
+
+  const handleCancel = () => {
+    if (user) {
+      setForm({
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        bio: user.bio || "",
+        birth_date: user.birth_date || "",
+        location: user.location || "",
+        reading_preferences: user.reading_preferences || "",
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const handleSaveGoal = () => {
+    updateGoalMutation.mutate(readingGoal);
+  };
+
+  const handleCancelGoal = () => {
+    setReadingGoal(user?.reading_goal || 50);
+    setIsEditingGoal(false);
   };
 
   return (
@@ -98,7 +181,7 @@ export const PersonalInfo = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setIsEditing(false)}
+                  onClick={handleCancel}
                   className="text-red-600 hover:bg-red-100"
                 >
                   <X className="w-4 h-4 mr-1" />
@@ -133,7 +216,7 @@ export const PersonalInfo = () => {
                 <p className="p-2 rounded bg-[#F8F9FA] text-[#2C3E50]">
                   {name === "birth_date" && form[name]
                     ? new Date(form[name]).toLocaleDateString("es-ES")
-                    : form[name]}
+                    : form[name] || "No especificado"}
                 </p>
               )}
             </div>
@@ -141,8 +224,112 @@ export const PersonalInfo = () => {
         </CardContent>
       </Card>
 
-      {/* Sobre mí */}
+      {/* Meta de Lectura */}
       <Card className="shadow-lg border-0">
+        <CardHeader className="pb-4 bg-[#F8F9FA]">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl text-[#2C3E50] flex items-center">
+              <Target className="w-5 h-5 mr-2 text-[#4DB6AC]" />
+              Meta de Lectura{" "}
+              {user?.reading_goal_year || new Date().getFullYear()}
+            </CardTitle>
+            {!isEditingGoal ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditingGoal(true)}
+                className="text-[#4DB6AC] hover:bg-[#4DB6AC] hover:text-white"
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Editar
+              </Button>
+            ) : (
+              <div className="flex space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSaveGoal}
+                  className="text-green-600 hover:bg-green-100"
+                  disabled={updateGoalMutation.isPending}
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  {updateGoalMutation.isPending ? "Guardando..." : "Guardar"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCancelGoal}
+                  className="text-red-600 hover:bg-red-100"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Cancelar
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-[#2C3E50]">
+              Libros que quiero leer este año
+            </label>
+            {isEditingGoal ? (
+              <Input
+                type="number"
+                min="1"
+                max="1000"
+                value={readingGoal}
+                onChange={(e) => setReadingGoal(parseInt(e.target.value) || 1)}
+                className="border-2 focus:border-[#4DB6AC]"
+              />
+            ) : (
+              <p className="p-2 rounded bg-[#F8F9FA] text-[#2C3E50]">
+                {user?.reading_goal || 50} libros
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2 text-[#2C3E50]">
+              Progreso actual
+            </label>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-[#2C3E50]">
+                  {user?.books_read_current_year || 0} de{" "}
+                  {user?.reading_goal || 50} libros
+                </span>
+                <span className="text-[#4DB6AC]">
+                  {Math.round(
+                    ((user?.books_read_current_year || 0) /
+                      (user?.reading_goal || 50)) *
+                      100
+                  )}
+                  %
+                </span>
+              </div>
+              <div className="w-full h-3 rounded-full bg-[#E8F5E8]">
+                <div
+                  className="h-3 rounded-full transition-all duration-300"
+                  style={{
+                    backgroundColor: "#4DB6AC",
+                    width: `${Math.min(
+                      ((user?.books_read_current_year || 0) /
+                        (user?.reading_goal || 50)) *
+                        100,
+                      100
+                    )}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sobre mí */}
+      <Card className="shadow-lg border-0 lg:col-span-2">
         <CardHeader className="pb-4 bg-[#F8F9FA]">
           <CardTitle className="text-xl text-[#2C3E50]">Sobre mí</CardTitle>
         </CardHeader>

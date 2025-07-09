@@ -29,8 +29,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) { //
     return $request->user();
 });
 
-Route::middleware('auth:sanctum')->put('/user', [UserController::class, 'update']);
-
 Route::prefix('library')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [LibraryController::class, 'index']);
     Route::post('/books', [LibraryController::class, 'addBook']);
@@ -38,4 +36,10 @@ Route::prefix('library')->middleware('auth:sanctum')->group(function () {
     Route::put('/books/{userBook}/rating', [LibraryController::class, 'rateBook']);
     Route::delete('/books/{userBook}', [LibraryController::class, 'removeBook']);
     Route::get('/stats', [LibraryController::class, 'getStats']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/user', [UserController::class, 'update']);
+    Route::post('/user/avatar', [UserController::class, 'updateAvatar']);
+    Route::put('/user/reading-goal', [UserController::class, 'updateReadingGoal']);
 });
