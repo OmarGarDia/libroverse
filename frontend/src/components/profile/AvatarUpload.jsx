@@ -1,21 +1,60 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Camera, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "../../components/ui/button";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../components/ui/Avatar";
 import { useToast } from "../hooks/use-toast";
-import { avatarService } from "@/services/avatarService";
+import { avatarService } from "../../services/avatarService";
+import { useAuth } from "../../context/AuthContext";
 
 export const AvatarUpload = ({ currentAvatar, userName, onAvatarChange }) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(currentAvatar || null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
   const { toast } = useToast();
+  const { user, setUser, refreshUser } = useAuth();
+
+  const getAvatarUrl = (avatarPath) => {
+    if (!avatarPath) return null;
+
+    console.log("🖼️ Procesando avatar path:", avatarPath);
+
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
+      console.log("✅ URL completa detectada:", avatarPath);
+      return avatarPath;
+    }
+
+    if (avatarPath.includes("/storage/")) {
+      const fullUrl = avatarPath.startsWith("http")
+        ? avatarPath
+        : `http://localhost:8000${avatarPath}`;
+      console.log("🔧 URL con storage construida:", fullUrl);
+      return fullUrl;
+    }
+
+    const fullUrl = `http://localhost:8000/storage/${avatarPath}`;
+    console.log("🔧 URL completa construida:", fullUrl);
+    return fullUrl;
+  };
+
+  const displayAvatar =
+    previewUrl || getAvatarUrl(user?.avatar) || getAvatarUrl(currentAvatar);
+
+  console.log("📸 AvatarUpload: Debug avatar URLs:", {
+    userAvatar: user?.avatar,
+    currentAvatar,
+    previewUrl,
+    displayAvatar,
+    constructedUrl: getAvatarUrl(user?.avatar),
+  });
 
   const handleFileSelect = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validar tipo de archivo
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Error",
@@ -25,7 +64,6 @@ export const AvatarUpload = ({ currentAvatar, userName, onAvatarChange }) => {
       return;
     }
 
-    // Validar tamaño (máximo 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -38,7 +76,8 @@ export const AvatarUpload = ({ currentAvatar, userName, onAvatarChange }) => {
     setIsUploading(true);
 
     try {
-      // Crear URL temporal para preview inmediato
+      console.log("📸 AvatarUpload: Subiendo avatar...");
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result;
@@ -46,14 +85,24 @@ export const AvatarUpload = ({ currentAvatar, userName, onAvatarChange }) => {
       };
       reader.readAsDataURL(file);
 
-      // Subir al servidor
       const response = await avatarService.updateAvatar(file);
 
-      // Actualizar con la URL real del servidor
-      const serverAvatarUrl = response.user.avatar;
-      if (serverAvatarUrl) {
-        setPreviewUrl(serverAvatarUrl);
-        onAvatarChange(serverAvatarUrl, response.user);
+      console.log("✅ AvatarUpload: Respuesta del servidor:", response);
+
+      setPreviewUrl(null);
+
+      if (response.user) {
+        console.log(
+          "🔄 AvatarUpload: Actualizando usuario en contexto:",
+          response.user
+        );
+        setUser(response.user);
+        await refreshUser();
+      }
+
+      const avatarUrl = getAvatarUrl(response.user.avatar);
+      if (avatarUrl) {
+        onAvatarChange(avatarUrl, response.user);
       }
 
       toast({
@@ -61,18 +110,16 @@ export const AvatarUpload = ({ currentAvatar, userName, onAvatarChange }) => {
         description: "Tu foto de perfil se ha actualizado correctamente",
       });
     } catch (error) {
-      console.error("Error uploading avatar:", error);
-      // Revertir preview en caso de error
-      setPreviewUrl(currentAvatar || null);
-
+      console.error("❌ AvatarUpload: Error uploading avatar:", error);
+      setPreviewUrl(null);
       toast({
         title: "Error",
-        description: error.message || "Error al subir el avatar",
+        description:
+          error instanceof Error ? error.message : "Error al subir el avatar",
         variant: "destructive",
       });
     } finally {
       setIsUploading(false);
-      // Limpiar el input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -86,15 +133,24 @@ export const AvatarUpload = ({ currentAvatar, userName, onAvatarChange }) => {
   return (
     <div className="relative">
       <Avatar className="w-32 h-32 shadow-xl">
-        <AvatarImage
-          src={previewUrl || currentAvatar}
-          alt={userName || "Avatar"}
-        />
+        {displayAvatar && (
+          <AvatarImage
+            src={displayAvatar}
+            alt={userName || "Avatar"}
+            onError={(e) => {
+              console.error("❌ Error cargando avatar:", displayAvatar);
+              e.currentTarget.style.display = "none";
+            }}
+            onLoad={() => {
+              console.log("✅ Avatar cargado correctamente:", displayAvatar);
+            }}
+          />
+        )}
         <AvatarFallback
           className="text-2xl font-bold"
           style={{ backgroundColor: "#4DB6AC", color: "#FDFBF6" }}
         >
-          {previewUrl ? null : <User className="w-16 h-16" />}
+          <User className="w-16 h-16" />
         </AvatarFallback>
       </Avatar>
 

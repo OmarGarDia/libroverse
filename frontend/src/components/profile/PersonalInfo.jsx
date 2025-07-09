@@ -13,19 +13,23 @@ export const PersonalInfo = () => {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
 
   const [form, setForm] = useState({
-    name: user?.name || "",
-    username: user?.username || "",
-    email: user?.email || "",
-    bio: user?.bio || "",
-    birth_date: user?.birth_date || "",
-    location: user?.location || "",
-    reading_preferences: user?.reading_preferences || "",
+    name: "",
+    username: "",
+    email: "",
+    bio: "",
+    birth_date: "",
+    location: "",
+    reading_preferences: "",
   });
 
-  const [readingGoal, setReadingGoal] = useState(user?.reading_goal || 50);
+  const [readingGoal, setReadingGoal] = useState(50);
 
   useEffect(() => {
     if (user) {
+      console.log(
+        "📋 PersonalInfo: Actualizando formulario con datos del usuario:",
+        user
+      );
       setForm({
         name: user.name || "",
         username: user.username || "",
@@ -146,6 +150,22 @@ export const PersonalInfo = () => {
     setReadingGoal(user?.reading_goal || 50);
     setIsEditingGoal(false);
   };
+
+  if (!user) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card className="shadow-lg border-0">
+          <CardContent className="p-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
