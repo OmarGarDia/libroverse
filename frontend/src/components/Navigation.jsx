@@ -33,7 +33,7 @@ export const Navigation = ({
   }, []);
 
   const navItems = [
-    { label: "Inicio", href: "#" },
+    { label: "Inicio", href: "/" },
     { label: "Explorar", href: "#" },
     { label: "Mis Libros", href: "#" },
     { label: "Comunidad", href: "#" },
@@ -83,16 +83,20 @@ export const Navigation = ({
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.label}
-              href={item.href}
+              to={item.href}
               className="text-lg font-semibold transition-colors duration-200 hover:opacity-80"
               style={{ color: "#FDFBF6" }}
-              onMouseEnter={(e) => (e.target.style.color = "#4DB6AC")}
-              onMouseLeave={(e) => (e.target.style.color = "#FDFBF6")}
+              onMouseEnter={(e) => {
+                e.target.style.color = "#4DB6AC";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.color = "#FDFBF6";
+              }}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -213,11 +217,12 @@ export const Navigation = ({
               className="w-80"
               style={{ backgroundColor: "#2C3E50", border: "none" }}
             >
+              ;
               <div className="flex flex-col space-y-6 pt-8">
                 {navItems.map((item) => (
-                  <a
+                  <Link
                     key={item.label}
-                    href={item.href}
+                    to={item.href}
                     className="text-lg font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
                     style={{ color: "#FDFBF6" }}
                     onMouseEnter={(e) => {
@@ -231,7 +236,7 @@ export const Navigation = ({
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 ))}
 
                 <div
@@ -253,21 +258,21 @@ export const Navigation = ({
                       </div>
 
                       {[
-                        { icon: User, label: "Mi Perfil", href: "#perfil" },
+                        { icon: User, label: "Mi Perfil", href: "/perfil" },
                         {
                           icon: Settings,
                           label: "Configuración",
-                          href: "#configuracion",
+                          href: "/configuracion",
                         },
                         {
                           icon: MessageCircle,
                           label: "Mensajes",
-                          href: "#mensajes",
+                          href: "/mensajes",
                         },
                       ].map(({ icon: Icon, label, href }) => (
-                        <a
+                        <Link
                           key={label}
-                          href={href}
+                          to={href}
                           className="flex items-center w-full py-2 px-4 rounded-lg transition-colors duration-200"
                           style={{ color: "#FDFBF6" }}
                           onMouseEnter={(e) => {
@@ -282,7 +287,7 @@ export const Navigation = ({
                         >
                           <Icon className="w-4 h-4 mr-3" />
                           {label}
-                        </a>
+                        </Link>
                       ))}
 
                       <Button

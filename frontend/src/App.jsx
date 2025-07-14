@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./components/pages/Index";
 import NotFound from "./components/pages/NotFound";
-import Profile from "./components/pages/Profile";
 import ProfileWrapper from "./components/ProfileWrapper";
 import { AuthProvider } from "./context/AuthContext";
+import Library from "./components/pages/Library";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +22,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/perfil" element={<ProfileWrapper />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/biblioteca" element={<Library />} />
+            <Route path="/mis-libros" element={<Library />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

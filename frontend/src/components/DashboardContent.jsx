@@ -1,15 +1,18 @@
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card";
-import { Separator } from "./ui/separator";
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { BookOpen, Users, Star, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const DashboardContent = ({ userData, onRefresh }) => {
+  const navigate = useNavigate();
+
   const stats = [
     {
       icon: BookOpen,
@@ -71,59 +74,34 @@ export const DashboardContent = ({ userData, onRefresh }) => {
               </span>
             </div>
           )}
-
-          <Button
-            onClick={onRefresh}
-            variant="outline"
-            className="shadow-lg transform hover:scale-105 transition-all duration-200"
-            style={{
-              borderColor: "#4DB6AC",
-              color: "#4DB6AC",
-            }}
-            onMouseEnter={(e) => {
-              const target = e.target;
-              target.style.backgroundColor = "#4DB6AC";
-              target.style.color = "#FDFBF6";
-            }}
-            onMouseLeave={(e) => {
-              const target = e.target;
-              target.style.backgroundColor = "transparent";
-              target.style.color = "#4DB6AC";
-            }}
-          >
-            Actualizar Estado
-          </Button>
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card
-              key={index}
-              className="text-center shadow-lg border-0 hover:shadow-xl transition-shadow duration-200"
-              style={{ backgroundColor: "#FDFBF6" }}
-            >
-              <CardContent className="p-6">
-                <Icon
-                  className="h-8 w-8 mx-auto mb-3"
-                  style={{ color: stat.color }}
-                />
-                <div
-                  className="text-2xl font-bold mb-1"
-                  style={{ color: "#2C3E50" }}
-                >
-                  {stat.value}
-                </div>
-                <div className="text-sm" style={{ color: "#7F8C8D" }}>
-                  {stat.label}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {stats.map((stat, index) => (
+          <Card
+            key={index}
+            className="text-center shadow-lg border-0 hover:shadow-xl transition-shadow duration-200"
+            style={{ backgroundColor: "#FDFBF6" }}
+          >
+            <CardContent className="p-6">
+              <stat.icon
+                className="h-8 w-8 mx-auto mb-3"
+                style={{ color: stat.color }}
+              />
+              <div
+                className="text-2xl font-bold mb-1"
+                style={{ color: "#2C3E50" }}
+              >
+                {stat.value}
+              </div>
+              <div className="text-sm" style={{ color: "#7F8C8D" }}>
+                {stat.label}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Action Cards */}
@@ -145,6 +123,7 @@ export const DashboardContent = ({ userData, onRefresh }) => {
           </CardHeader>
           <CardContent>
             <Button
+              onClick={() => navigate("/biblioteca")}
               className="w-full shadow-lg transform hover:scale-105 transition-all duration-200"
               style={{
                 backgroundColor: "#4DB6AC",
@@ -187,5 +166,3 @@ export const DashboardContent = ({ userData, onRefresh }) => {
     </div>
   );
 };
-
-export default DashboardContent;

@@ -111,12 +111,6 @@ export const ProfileHeader = ({ onUserDataUpdate }) => {
 
         <div className="flex space-x-3">
           <Button
-            className="px-6 py-2 rounded-full font-semibold"
-            style={{ backgroundColor: "#D4AF37", color: "#2C3E50" }}
-          >
-            Editar Perfil
-          </Button>
-          <Button
             variant="outline"
             className="px-6 py-2 rounded-full font-semibold border-2"
             style={{
