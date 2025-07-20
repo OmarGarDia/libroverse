@@ -86,7 +86,7 @@ export const AddBookModal = ({ isOpen, onClose }) => {
       >
         <DialogHeader>
           <DialogTitle className="text-2xl" style={{ color: "#2C3E50" }}>
-            Agregar Nuevo Ligro
+            Agregar Nuevo Libro
           </DialogTitle>
         </DialogHeader>
 

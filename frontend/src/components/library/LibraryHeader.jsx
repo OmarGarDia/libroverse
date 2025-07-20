@@ -1,7 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { Plus, List, LayoutGrid } from "lucide-react";
+import React from "react";
+import { Button } from "../ui/button";
+import { List, LayoutGrid } from "lucide-react";
 
-export const LibraryHeader = ({ onAddBook, viewMode, onViewModeChange }) => {
+const LibraryHeader = ({ viewMode, onViewModeChange }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
       <div>
@@ -14,7 +15,7 @@ export const LibraryHeader = ({ onAddBook, viewMode, onViewModeChange }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* View Mode Buttons */}
+        {/* Botones para cambiar el modo de vista */}
         <div className="flex bg-white rounded-lg p-1 shadow-md">
           <Button
             variant="ghost"
@@ -37,20 +38,9 @@ export const LibraryHeader = ({ onAddBook, viewMode, onViewModeChange }) => {
             <List className="h-4 w-4" style={{ color: "#4DB6AC" }} />
           </Button>
         </div>
-
-        {/* Add Book Button */}
-        <Button
-          onClick={onAddBook}
-          className="shadow-lg transform hover:scale-105 transition-all duration-200"
-          style={{
-            backgroundColor: "#4DB6AC",
-            color: "#FDFBF6",
-          }}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Agregar Libro
-        </Button>
       </div>
     </div>
   );
 };
+
+export default LibraryHeader;

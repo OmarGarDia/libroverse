@@ -1,59 +1,65 @@
-import { Card, CardContent } from "@/components/ui/card";
+import React from "react";
+import { Card } from "../ui/card";
 import { BookOpen, Clock, Star, Target } from "lucide-react";
 
-export const LibraryStats = () => {
+const LibraryStats = () => {
   const stats = [
     {
-      icon: BookOpen,
-      label: "Total de Libros",
-      value: "127",
-      color: "#4DB6AC",
-    },
-    {
-      icon: Clock,
-      label: "Leyendo Ahora",
-      value: "3",
-      color: "#D4AF37",
-    },
-    {
-      icon: Star,
-      label: "Favoritos",
+      title: "Libros Leídos",
       value: "24",
+      icon: BookOpen,
       color: "#E74C3C",
     },
     {
+      title: "Leyendo Ahora",
+      value: "3",
+      icon: Clock,
+      color: "#F39C12",
+    },
+    {
+      title: "Calificación Promedio",
+      value: "4.2",
+      icon: Star,
+      color: "#F1C40F",
+    },
+    {
+      title: "Meta Anual",
+      value: "50",
       icon: Target,
-      label: "Meta Anual",
-      value: "85%",
-      color: "#9B59B6",
+      color: "#2ECC71",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {stats.map((stat, index) => (
         <Card
           key={index}
-          className="shadow-lg border-0 hover:shadow-xl transition-shadow duration-200"
-          style={{ backgroundColor: "#FDFBF6" }}
+          className="p-6 bg-white shadow-lg border-0 hover:shadow-xl transition-shadow duration-300"
         >
-          <CardContent className="p-4 text-center">
-            <stat.icon
-              className="h-6 w-6 mx-auto mb-2"
-              style={{ color: stat.color }}
-            />
+          <div className="flex items-center justify-between">
+            <div>
+              <p
+                className="text-sm font-medium mb-2"
+                style={{ color: "#7F8C8D" }}
+              >
+                {stat.title}
+              </p>
+              <p className="text-3xl font-bold" style={{ color: "#2C3E50" }}>
+                {stat.value}
+              </p>
+            </div>
             <div
-              className="text-xl font-bold mb-1"
-              style={{ color: "#2C3E50" }}
+              className="p-3 rounded-full"
+              style={{ backgroundColor: `${stat.color}20` }}
             >
-              {stat.value}
+              <stat.icon className="h-6 w-6" style={{ color: stat.color }} />
             </div>
-            <div className="text-xs" style={{ color: "#7F8C8D" }}>
-              {stat.label}
-            </div>
-          </CardContent>
+          </div>
         </Card>
       ))}
     </div>
   );
 };
+
+export default LibraryStats;

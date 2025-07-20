@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
-import { LibraryHeader } from "@/components/library/LibraryHeader";
-import { LibraryFilters } from "@/components/library/LibraryFilters";
-import { LibraryGrid } from "@/components/library/LibraryGrid";
-import { LibraryStats } from "@/components/library/LibraryStats";
-import { AddBookModal } from "@/components/library/AddBookModal";
+import LibraryHeader from "@/components/library/LibraryHeader";
+import { LibraryFilters } from "../library/LibraryFilters";
+import LibraryGrid from "@/components/library/LibraryGrid";
+import LibraryStats from "@/components/library/LibraryStats";
 import { authService } from "@/services/authService";
 
 const Library = () => {
@@ -14,29 +13,28 @@ const Library = () => {
   const [currentFilter, setCurrentFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
-  const [isAddBookOpen, setIsAddBookOpen] = useState(false);
-
-  const checkAuthStatus = async () => {
-    try {
-      setIsLoading(true);
-      const user = await authService.checkAuth();
-      if (user) {
-        setUserData(user);
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        setUserData(null);
-      }
-    } catch (error) {
-      console.error("Error verificando autenticación:", error);
-      setIsAuthenticated(false);
-      setUserData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        setIsLoading(true);
+        const user = await authService.checkAuth();
+        if (user) {
+          setUserData(user);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          setUserData(null);
+        }
+      } catch (error) {
+        console.error("Error verificando autenticación:", error);
+        setIsAuthenticated(false);
+        setUserData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     checkAuthStatus();
   }, []);
 
@@ -93,11 +91,7 @@ const Library = () => {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <LibraryHeader
-          onAddBook={() => setIsAddBookOpen(true)}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-        />
+        <LibraryHeader viewMode={viewMode} onViewModeChange={setViewMode} />
 
         <LibraryStats />
 
@@ -114,11 +108,6 @@ const Library = () => {
           viewMode={viewMode}
         />
       </div>
-
-      <AddBookModal
-        isOpen={isAddBookOpen}
-        onClose={() => setIsAddBookOpen(false)}
-      />
     </div>
   );
 };

@@ -1,105 +1,98 @@
-import { useState } from "react";
-import { BookCard } from "./BookCard";
+import React from "react";
+import BookCard from "./BookCard";
 import { BookListItem } from "./BookListItem";
 
-export const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
-  const [books] = useState([
+const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
+  // Datos de prueba
+  const mockBooks = [
     {
       id: 1,
       title: "Cien años de soledad",
       author: "Gabriel García Márquez",
       cover:
-        "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
       status: "leidos",
-      progress: 100,
       rating: 5,
+      progress: 100,
       pages: 417,
       genre: "Realismo Mágico",
-      dateAdded: "2024-01-15",
-      isFavorite: true,
+      dateFinished: "2024-01-15",
     },
     {
       id: 2,
-      title: "El Principito",
-      author: "Antoine de Saint-Exupéry",
-      cover:
-        "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
-      status: "leyendo",
-      progress: 65,
-      rating: 4,
-      pages: 96,
-      genre: "Ficción",
-      dateAdded: "2024-02-01",
-      isFavorite: true,
-    },
-    {
-      id: 3,
       title: "1984",
       author: "George Orwell",
       cover:
-        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
-      status: "por-leer",
-      progress: 0,
-      rating: 0,
+        "https://images.unsplash.com/photo-1495640452828-3df6795cf69b?w=400&h=600&fit=crop",
+      status: "leyendo",
+      rating: null,
+      progress: 65,
       pages: 328,
       genre: "Distopía",
-      dateAdded: "2024-02-10",
-      isFavorite: false,
+      dateStarted: "2024-02-01",
+    },
+    {
+      id: 3,
+      title: "El Principito",
+      author: "Antoine de Saint-Exupéry",
+      cover:
+        "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+      status: "leidos",
+      rating: 4,
+      progress: 100,
+      pages: 96,
+      genre: "Filosofía",
+      dateFinished: "2024-01-20",
     },
     {
       id: 4,
       title: "Don Quijote de la Mancha",
       author: "Miguel de Cervantes",
       cover:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop",
-      status: "leidos",
-      progress: 100,
-      rating: 4,
-      pages: 863,
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+      status: "por-leer",
+      rating: null,
+      progress: 0,
+      pages: 1023,
       genre: "Clásico",
-      dateAdded: "2023-12-20",
-      isFavorite: false,
+      dateAdded: "2024-02-10",
     },
     {
       id: 5,
-      title: "La Casa de los Espíritus",
-      author: "Isabel Allende",
+      title: "Rayuela",
+      author: "Julio Cortázar",
       cover:
-        "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop",
       status: "leyendo",
+      rating: null,
       progress: 30,
-      rating: 0,
-      pages: 433,
-      genre: "Realismo Mágico",
-      dateAdded: "2024-02-15",
-      isFavorite: false,
+      pages: 600,
+      genre: "Experimental",
+      dateStarted: "2024-02-05",
     },
     {
       id: 6,
-      title: "El Alquimista",
-      author: "Paulo Coelho",
+      title: "La sombra del viento",
+      author: "Carlos Ruiz Zafón",
       cover:
-        "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=300&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop",
       status: "leidos",
-      progress: 100,
       rating: 5,
-      pages: 163,
-      genre: "Ficción",
-      dateAdded: "2024-01-05",
-      isFavorite: true,
+      progress: 100,
+      pages: 565,
+      genre: "Misterio",
+      dateFinished: "2024-01-10",
     },
-  ]);
+  ];
 
-  const filteredBooks = books.filter((book) => {
-    const matchesFilter =
-      filter === "todos" ||
-      (filter === "favoritos" && book.isFavorite) ||
-      book.status === filter;
-
+  // Filtro por estado y búsqueda
+  const filteredBooks = mockBooks.filter((book) => {
+    const matchesFilter = filter === "todos" || book.status === filter;
     const matchesSearch =
       searchQuery === "" ||
       book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase());
+      book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.genre.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesFilter && matchesSearch;
   });
@@ -114,7 +107,7 @@ export const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
         <p style={{ color: "#7F8C8D" }}>
           {searchQuery
             ? `No hay libros que coincidan con "${searchQuery}"`
-            : "Agrega algunos libros a tu biblioteca para comenzar"}
+            : "No tienes libros en esta categoría aún"}
         </p>
       </div>
     );
@@ -122,7 +115,7 @@ export const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
 
   if (viewMode === "list") {
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {filteredBooks.map((book) => (
           <BookListItem key={book.id} book={book} />
         ))}
@@ -138,3 +131,5 @@ export const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
     </div>
   );
 };
+
+export default LibraryGrid;
