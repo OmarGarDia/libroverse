@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\API\BookNotesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,4 +43,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user', [UserController::class, 'update']);
     Route::post('/user/avatar', [UserController::class, 'updateAvatar']);
     Route::put('/user/reading-goal', [UserController::class, 'updateReadingGoal']);
+});
+
+
+Route::prefix('books/{bookId}/notes')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [BookNotesController::class, 'index']);
+    Route::post('/', [BookNotesController::class, 'store']);
+    Route::delete('/{noteId}', [BookNotesController::class, 'destroy']);
 });

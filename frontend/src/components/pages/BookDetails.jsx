@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Separator } from "../ui/separator";
-import { useToast } from "../hooks/use-toast";
+import { Toast } from "../ui/toast";
 import { authService } from "@/services/authService";
 import {
   ArrowLeft,
@@ -32,6 +32,7 @@ import {
   Heart,
   Share2,
 } from "lucide-react";
+import { bookNotesService } from "../../services/bookNotesService";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -44,6 +45,8 @@ const BookDetails = () => {
   const [editedBook, setEditedBook] = useState(null);
   const [newNote, setNewNote] = useState("");
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [notes, setNotes] = useState([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
 
   // Mock data - en el futuro esto vendrá de la API
   const mockBooks = [
@@ -115,6 +118,8 @@ const BookDetails = () => {
     },
   ];
 
+  // TODO -- FALTA POR ARREGLAR ESTA PARTE, DONDE HAY QUE QUITAR EL MOCK Y PASAR LOS DATOS DEL LIBRO SELECCIONAO
+
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
@@ -127,6 +132,7 @@ const BookDetails = () => {
         if (foundBook) {
           setBook(foundBook);
           setEditedBook({ ...foundBook });
+          await loadNotes(foundBook.id);
         }
       } else {
         setIsAuthenticated(false);
@@ -138,6 +144,20 @@ const BookDetails = () => {
       setUserData(null);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadNotes = async (bookId) => {
+    try {
+      setIsLoadingNotes(true);
+      console.log("Loading notes for bookId:", bookId);
+      const fetchedNotes = await bookNotesService.getNotes(bookId);
+      console.log("Fetched notes:", fetchedNotes);
+      setNotes(fetchedNotes);
+    } catch (error) {
+      console.error("Error cargando notas:", error);
+    } finally {
+      setIsLoadingNotes(false);
     }
   };
 
@@ -171,10 +191,6 @@ const BookDetails = () => {
   const handleSaveChanges = () => {
     setBook(editedBook);
     setIsEditing(false);
-    toast({
-      title: "Cambios guardados",
-      description: "La información del libro se ha actualizado correctamente.",
-    });
   };
 
   const handleProgressChange = (value) => {
@@ -194,48 +210,41 @@ const BookDetails = () => {
     setEditedBook((prev) => ({ ...prev, rating }));
   };
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (newNote.trim()) {
-      const note = {
-        id: Date.now(),
-        content: newNote,
-        date: new Date().toISOString().split("T")[0],
-        page: Math.floor((editedBook.progress / 100) * editedBook.pages),
-      };
-      setEditedBook((prev) => ({
-        ...prev,
-        notes: [...(prev.notes || []), note],
-      }));
-      setNewNote("");
-      setIsAddingNote(false);
-      toast({
-        title: "Nota añadida",
-        description: "Tu nota ha sido guardada correctamente.",
-      });
+      try {
+        setIsAddingNote(true);
+        const pageNumber = Math.floor(
+          (editedBook.progress / 100) * editedBook.pages
+        );
+
+        const newNoteData = {
+          content: newNote,
+          page_number: pageNumber > 0 ? pageNumber : null,
+        };
+
+        const createdNote = await bookNotesService.createNote(id, newNoteData);
+        setNotes((prev) => [createdNote, ...prev]);
+        setNewNote("");
+        setIsAddingNote(false);
+      } catch (error) {
+        console.error("Error creando nota:", error);
+        setIsAddingNote(false);
+      }
     }
   };
 
-  const handleDeleteNote = (noteId) => {
-    setEditedBook((prev) => ({
-      ...prev,
-      notes: prev.notes.filter((note) => note.id !== noteId),
-    }));
-    toast({
-      title: "Nota eliminada",
-      description: "La nota ha sido eliminada correctamente.",
-    });
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await bookNotesService.deleteNote(id, noteId);
+      setNotes((prev) => prev.filter((note) => note.id !== noteId));
+    } catch (error) {
+      console.error("Error eliminando nota:", error);
+    }
   };
 
   const toggleFavorite = () => {
     setEditedBook((prev) => ({ ...prev, isFavorite: !prev.isFavorite }));
-    toast({
-      title: editedBook.isFavorite
-        ? "Eliminado de favoritos"
-        : "Añadido a favoritos",
-      description: editedBook.isFavorite
-        ? "El libro ya no está en tus favoritos."
-        : "El libro ha sido añadido a tus favoritos.",
-    });
   };
 
   if (isLoading) {
@@ -701,7 +710,7 @@ const BookDetails = () => {
                   className="text-lg font-semibold"
                   style={{ color: "#2C3E50" }}
                 >
-                  Mis Notas ({currentBook.notes?.length || 0})
+                  Mis Notas ({notes?.length || 0})
                 </h3>
                 <Button
                   onClick={() => setIsAddingNote(true)}
@@ -744,8 +753,13 @@ const BookDetails = () => {
 
               {/* Notes List */}
               <div className="space-y-4">
-                {currentBook.notes && currentBook.notes.length > 0 ? (
-                  currentBook.notes.map((note) => (
+                {isLoadingNotes ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p style={{ color: "#7F8C8D" }}>Cargando notas...</p>
+                  </div>
+                ) : notes && notes.length > 0 ? (
+                  notes.map((note) => (
                     <div key={note.id} className="p-4 bg-gray-50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <div
@@ -754,25 +768,25 @@ const BookDetails = () => {
                         >
                           <Calendar className="h-3 w-3" />
                           <span>
-                            {new Date(note.date).toLocaleDateString("es-ES")}
+                            {new Date(note.created_at).toLocaleDateString(
+                              "es-ES"
+                            )}
                           </span>
-                          {note.page && (
+                          {note.page_number && (
                             <>
                               <span>•</span>
-                              <span>Página {note.page}</span>
+                              <span>Página {note.page_number}</span>
                             </>
                           )}
                         </div>
-                        {isEditing && (
-                          <Button
-                            onClick={() => handleDeleteNote(note.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          onClick={() => handleDeleteNote(note.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                       <p
                         className="text-sm leading-relaxed"

@@ -74,4 +74,9 @@ class User extends Authenticatable
     {
         return $this->roles->flatMap->permissions->contains('name', $permission);
     }
+
+    public function bookNote()
+    {
+        return $this->hasMany(BookNote::class);
+    }
 }

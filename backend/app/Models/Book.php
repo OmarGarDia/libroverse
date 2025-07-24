@@ -51,9 +51,9 @@ class Book extends Model
     }
 
 
-    public function authors(): BelongsToMany
+    public function authors()
     {
-        return $this->belongsToMany(Author::class)->withPivot('role')->withTimestamps();
+        return $this->belongsToMany(Author::class, 'book_author')->withPivot('role')->withTimestamps();
     }
 
     public function genres(): BelongsToMany
@@ -94,5 +94,10 @@ class Book extends Model
         $this->average_rating = $ratings->avg('user_rating') ?? 0;
         $this->ratings_count = $ratings->count();
         $this->save();
+    }
+
+    public function bookNote()
+    {
+        return $this->hasMany(BookNote::class);
     }
 }

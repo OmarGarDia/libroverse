@@ -21,8 +21,7 @@ class LibraryController extends Controller
         }
 
         $userBooks = $query->orderBy('updated_at', 'desc')->paginate(20);
-
-        return response()->download($userBooks);
+        return response()->json($userBooks);
     }
 
     public function addBook(Request $request)

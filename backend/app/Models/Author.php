@@ -28,9 +28,9 @@ class Author extends Model
         ];
     }
 
-    public function books(): BelongsToMany
+    public function books()
     {
-        return $this->belongsToMany(Book::class)->withPivot('role')->withTimestamps();
+        return $this->belongsToMany(Book::class, 'book_author')->withPivot('role')->withTimestamps();
     }
 
     public function getIsAliveAttribute()
