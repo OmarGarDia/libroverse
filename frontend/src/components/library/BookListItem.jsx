@@ -9,8 +9,10 @@ import {
   BookOpen,
   MoreHorizontal,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const BookListItem = ({ book }) => {
+  const navigate = useNavigate();
   const getStatusInfo = (status) => {
     switch (status) {
       case "leyendo":

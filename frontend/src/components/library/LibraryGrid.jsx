@@ -16,14 +16,52 @@ const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
     try {
       setLoading(true);
       setError(null);
-      const libraryResponse = await libraryService.getLibrary(); // objeto paginado
+      const libraryResponse = await libraryService.getLibrary();
       console.log("LIBROS CARGADOS -> : ", libraryResponse);
-      setBooks(libraryResponse.data); // accedes al array para setear books
+      console.log("PRIMER LIBRO -> : ", libraryResponse.data?.[0]);
+
+      // Mapear los datos de Laravel al formato esperado por los componentes
+      const mappedBooks = libraryResponse.data.map((userBook) => ({
+        id: userBook.id,
+        title: userBook.book?.title || "Sin título",
+        author: userBook.book?.author || "Autor desconocido",
+        cover:
+          userBook.book?.cover_image_url ||
+          userBook.book?.cover ||
+          "/placeholder.svg",
+        status: mapStatus(userBook.status),
+        rating: userBook.user_rating ? parseFloat(userBook.user_rating) : null,
+        progress:
+          userBook.current_page && userBook.book?.pages
+            ? Math.round((userBook.current_page / userBook.book.pages) * 100)
+            : 0,
+        pages: userBook.book?.pages || 0,
+        genre: userBook.book?.genre || "Sin género",
+        dateFinished: userBook.finished_reading_at,
+        dateStarted: userBook.started_reading_at,
+        dateAdded: userBook.created_at,
+      }));
+
+      console.log("LIBROS MAPEADOS -> : ", mappedBooks);
+      setBooks(mappedBooks);
     } catch (err) {
       console.error("Error loading books:", err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const mapStatus = (laravelStatus) => {
+    switch (laravelStatus) {
+      case "want_to_read":
+        return "por-leer";
+      case "reading":
+        return "leyendo";
+      case "read":
+        return "leidos";
+      default:
+        return "por-leer";
     }
   };
 
@@ -55,14 +93,16 @@ const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
       </div>
     );
   }
+
+  //TODO -- ARREGLAR QUE CARGUEN LOS DATOS EN EL FRONT BIEN
   // Filtro por estado y búsqueda
   const filteredBooks = books.filter((book) => {
     const matchesFilter = filter === "todos" || book.status === filter;
     const matchesSearch =
       searchQuery === "" ||
-      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      book.genre.toLowerCase().includes(searchQuery.toLowerCase());
+      book.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.genre?.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesFilter && matchesSearch;
   });

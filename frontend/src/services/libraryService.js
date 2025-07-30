@@ -41,7 +41,7 @@ class LibraryService {
     }
 
     const data = await response.json();
-    return data;
+    return data.data;
   }
 
   async getStats() {
@@ -129,6 +129,18 @@ class LibraryService {
       throw new Error("Error al eliminar el libro");
     }
   }
+
+  async getBook(userBookId) {
+    const allBooks = await this.getLibrary();
+    const book = allBooks.find((book) => book.id === userBookId);
+
+    if (!book) {
+      throw new Error("Libro no encontrado");
+    }
+
+    return book;
+  }
 }
 
-export const libraryService = new LibraryService();
+const libraryServiceInstance = new LibraryService();
+export const libraryService = libraryServiceInstance;

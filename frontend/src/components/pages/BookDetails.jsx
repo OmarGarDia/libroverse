@@ -33,6 +33,7 @@ import {
   Share2,
 } from "lucide-react";
 import { bookNotesService } from "../../services/bookNotesService";
+import { libraryService } from "../../services/libraryService";
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -48,77 +49,18 @@ const BookDetails = () => {
   const [notes, setNotes] = useState([]);
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
 
-  // Mock data - en el futuro esto vendrá de la API
-  const mockBooks = [
-    {
-      id: 1,
-      title: "Cien años de soledad",
-      author: "Gabriel García Márquez",
-      cover:
-        "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
-      status: "leidos",
-      rating: 5,
-      progress: 100,
-      pages: 417,
-      genre: "Realismo Mágico",
-      dateFinished: "2024-01-15",
-      dateStarted: "2024-01-01",
-      dateAdded: "2023-12-20",
-      description:
-        "Una obra maestra del realismo mágico que narra la historia de la familia Buendía a lo largo de siete generaciones en el pueblo ficticio de Macondo. García Márquez teje una narrativa extraordinaria que combina lo fantástico con lo cotidiano, creando un universo único donde la realidad y la magia coexisten de manera natural.",
-      publisher: "Editorial Sudamericana",
-      isbn: "978-0-06-088328-7",
-      language: "Español",
-      isFavorite: true,
-      notes: [
-        {
-          id: 1,
-          content:
-            "La descripción de Macondo es increíblemente vívida. Me recuerda a los pueblos de mi infancia.",
-          date: "2024-01-05",
-          page: 45,
-        },
-        {
-          id: 2,
-          content:
-            "El realismo mágico de García Márquez es único. La forma en que describe la levitación del padre Nicanor es magistral.",
-          date: "2024-01-10",
-          page: 89,
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "1984",
-      author: "George Orwell",
-      cover:
-        "https://images.unsplash.com/photo-1495640452828-3df6795cf69b?w=400&h=600&fit=crop",
-      status: "leyendo",
-      rating: null,
-      progress: 65,
-      pages: 328,
-      genre: "Distopía",
-      dateStarted: "2024-02-01",
-      dateAdded: "2024-01-25",
-      description:
-        "Una novela distópica que presenta una sociedad totalitaria donde el gobierno controla todos los aspectos de la vida humana. Winston Smith vive en un mundo donde el Gran Hermano lo observa todo y la verdad es maleable según los intereses del Partido.",
-      publisher: "Secker & Warburg",
-      isbn: "978-0-452-28423-4",
-      language: "Inglés",
-      isFavorite: false,
-      notes: [
-        {
-          id: 3,
-          content:
-            "El concepto de 'doblepensar' es terroríficamente relevante en nuestra época.",
-          date: "2024-02-05",
-          page: 156,
-        },
-      ],
-    },
-  ];
-
-  // TODO -- FALTA POR ARREGLAR ESTA PARTE, DONDE HAY QUE QUITAR EL MOCK Y PASAR LOS DATOS DEL LIBRO SELECCIONAO
+  const mapStatus = (laravelStatus) => {
+    switch (laravelStatus) {
+      case "want_to_read":
+        return "por-leer";
+      case "reading":
+        return "leyendo";
+      case "read":
+        return "leidos";
+      default:
+        return "por-leer";
+    }
+  };
 
   const checkAuthStatus = async () => {
     try {
@@ -128,11 +70,51 @@ const BookDetails = () => {
         setUserData(user);
         setIsAuthenticated(true);
         // Buscar el libro por ID
-        const foundBook = mockBooks.find((book) => book.id === parseInt(id));
-        if (foundBook) {
-          setBook(foundBook);
-          setEditedBook({ ...foundBook });
-          await loadNotes(foundBook.id);
+        try {
+          const bookResponse = await libraryService.getBook(parseInt(id));
+          console.log("LIBRO CARGADO -> : ", bookResponse);
+
+          // Mapear los datos de Laravel al formato esperado por el componente
+          const mappedBook = {
+            id: bookResponse.id,
+            title: bookResponse.book?.title || "Sin título",
+            author: bookResponse.book?.author || "Autor desconocido",
+            cover:
+              bookResponse.book?.cover_image_url ||
+              bookResponse.book?.cover ||
+              "/placeholder.svg",
+            status: mapStatus(bookResponse.status),
+            rating: bookResponse.user_rating
+              ? parseFloat(bookResponse.user_rating)
+              : null,
+            progress:
+              bookResponse.current_page && bookResponse.book?.pages
+                ? Math.round(
+                    (bookResponse.current_page / bookResponse.book.pages) * 100
+                  )
+                : 0,
+            pages: bookResponse.book?.pages || 0,
+            genre: bookResponse.book?.genre || "Sin género",
+            dateFinished: bookResponse.finished_reading_at,
+            dateStarted: bookResponse.started_reading_at,
+            dateAdded: bookResponse.created_at,
+            description:
+              bookResponse.book?.description || "Sin descripción disponible",
+            publisher: bookResponse.book?.publisher || "Editorial desconocida",
+            isbn: bookResponse.book?.isbn || "ISBN no disponible",
+            language: bookResponse.book?.language || "Idioma desconocido",
+            isFavorite: bookResponse.is_favorite || false,
+          };
+
+          console.log("LIBRO MAPEADO -> : ", mappedBook);
+          setBook(mappedBook);
+          setEditedBook({ ...mappedBook });
+
+          // Cargar notas reales de la API
+          await loadNotes(id);
+        } catch (bookError) {
+          console.error("Error cargando libro:", bookError);
+          setBook(null);
         }
       } else {
         setIsAuthenticated(false);
@@ -342,34 +324,6 @@ const BookDetails = () => {
             <Button variant="ghost" size="sm">
               <Share2 className="h-4 w-4" />
             </Button>
-            {!isEditing ? (
-              <Button
-                onClick={() => setIsEditing(true)}
-                variant="outline"
-                size="sm"
-              >
-                <Edit3 className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button onClick={handleSaveChanges} size="sm">
-                  <Save className="h-4 w-4 mr-2" />
-                  Guardar
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedBook({ ...book });
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancelar
-                </Button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -543,15 +497,39 @@ const BookDetails = () => {
                 </p>
               </div>
             </Card>
-
+            {/* TODO - Hacer que las modificaciones y las notas funcionen, que una vez se termine el libro se pueda valorar con las
+              estrellas y que se pueda cambiar el estado del libro, por leer, leido, etc*/}
             {/* Progress and Status */}
             <Card className="p-6 bg-white shadow-lg border-0">
-              <h3
-                className="text-lg font-semibold mb-4"
-                style={{ color: "#2C3E50" }}
-              >
-                Progreso de Lectura
-              </h3>
+              {!isEditing ? (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  variant="outline"
+                  size="sm"
+                  className="mb-3"
+                >
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              ) : (
+                <div className="flex gap-2 mb-3">
+                  <Button onClick={handleSaveChanges} size="sm">
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditedBook({ ...book });
+                    }}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancelar
+                  </Button>
+                </div>
+              )}
 
               <div className="space-y-4">
                 {/* Progress Slider */}
