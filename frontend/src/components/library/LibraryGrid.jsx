@@ -21,7 +21,7 @@ const LibraryGrid = ({ filter, searchQuery, viewMode }) => {
       console.log("PRIMER LIBRO -> : ", libraryResponse.data?.[0]);
 
       // Mapear los datos de Laravel al formato esperado por los componentes
-      const mappedBooks = libraryResponse.data.map((userBook) => ({
+      const mappedBooks = libraryResponse.map((userBook) => ({
         id: userBook.id,
         title: userBook.book?.title || "Sin título",
         author: userBook.book?.author || "Autor desconocido",

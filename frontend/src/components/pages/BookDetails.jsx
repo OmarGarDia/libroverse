@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { Textarea } from "../ui/textarea";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -93,6 +93,7 @@ const BookDetails = () => {
                     (bookResponse.current_page / bookResponse.book.pages) * 100
                   )
                 : 0,
+            currentPage: bookResponse.current_page || 0,
             pages: bookResponse.book?.pages || 0,
             genre: bookResponse.book?.genre || "Sin género",
             dateFinished: bookResponse.finished_reading_at,
@@ -175,15 +176,23 @@ const BookDetails = () => {
     setIsEditing(false);
   };
 
-  const handleProgressChange = (value) => {
-    const newProgress = value[0];
-    setEditedBook((prev) => ({ ...prev, progress: newProgress }));
+  const handlePageChange = (currentPage) => {
+    const maxPages = editedBook.pages || 1;
+    const validPage = Math.max(
+      0,
+      Math.min(parseInt(currentPage) || 0, maxPages)
+    );
+    const newProgress = Math.round((validPage / maxPages) * 100);
 
-    // Auto-cambiar estado basado en progreso
-    let newStatus = prev.status;
+    setEditedBook((prev) => ({
+      ...prev,
+      progress: newProgress,
+      currentPage: validPage,
+    }));
+
+    let newStatus = "leyendo";
     if (newProgress === 0) newStatus = "por-leer";
     else if (newProgress === 100) newStatus = "leidos";
-    else newStatus = "leyendo";
 
     setEditedBook((prev) => ({ ...prev, status: newStatus }));
   };
@@ -532,39 +541,50 @@ const BookDetails = () => {
               )}
 
               <div className="space-y-4">
-                {/* Progress Slider */}
+                {/* Progress Input */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <span
                       className="text-sm font-medium"
                       style={{ color: "#7F8C8D" }}
                     >
-                      Progreso
+                      Progreso de lectura
                     </span>
                     <span
                       className="text-sm font-medium"
                       style={{ color: "#2C3E50" }}
                     >
-                      {currentBook.progress}% (
-                      {Math.floor(
-                        (currentBook.progress / 100) * currentBook.pages
-                      )}{" "}
-                      de {currentBook.pages} páginas)
+                      {currentBook.progress}%
                     </span>
                   </div>
                   {isEditing ? (
-                    <Slider
-                      value={[currentBook.progress]}
-                      onValueChange={handleProgressChange}
-                      max={100}
-                      step={1}
-                      className="mb-4"
-                    />
+                    <div className="flex items-center gap-2 mb-4">
+                      <Input
+                        type="number"
+                        min="0"
+                        max={currentBook.pages}
+                        value={currentBook.currentPage || 0}
+                        onChange={(e) => handlePageChange(e.target.value)}
+                        className="w-24"
+                      />
+                      <span className="text-sm" style={{ color: "#7F8C8D" }}>
+                        de {currentBook.pages} páginas
+                      </span>
+                    </div>
                   ) : (
-                    <Progress
-                      value={currentBook.progress}
-                      className="h-3 mb-4"
-                    />
+                    <div className="mb-4">
+                      <Progress
+                        value={currentBook.progress}
+                        className="h-3 mb-2"
+                      />
+                      <p className="text-sm" style={{ color: "#7F8C8D" }}>
+                        {currentBook.currentPage ||
+                          Math.floor(
+                            (currentBook.progress / 100) * currentBook.pages
+                          )}{" "}
+                        de {currentBook.pages} páginas
+                      </p>
+                    </div>
                   )}
                 </div>
 
