@@ -171,9 +171,23 @@ const BookDetails = () => {
     }
   };
 
-  const handleSaveChanges = () => {
-    setBook(editedBook);
-    setIsEditing(false);
+  const handleSaveChanges = async () => {
+    try {
+      await libraryService.updateProgress(
+        parseInt(id),
+        editedBook.progress,
+        editedBook.currentPage
+      );
+
+      if (editedBook.rating !== book.rating && editedBook.rating !== null) {
+        await libraryService.rateBook(parseInt(id), editedBook.rating);
+      }
+
+      setBook(editedBook);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error guardando cambios:", error);
+    }
   };
 
   const handlePageChange = (currentPage) => {

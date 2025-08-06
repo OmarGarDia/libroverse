@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserBook;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class LibraryController extends Controller
 {
@@ -49,62 +50,120 @@ class LibraryController extends Controller
 
     public function updateProgress(Request $request, UserBook $userBook)
     {
-        $this->authorize('update', $userBook);
+        try {
+            if ($userBook->user_id !== $request->user()->id) {
+                return response()->json([
+                    'message' => 'No autorizado'
+                ], 403);
+            }
 
-        $request->validate([
-            'current_page' => 'required|integer|min:0',
-            'status' => 'sometimes|in:want_to_read,reading,read,abandoned,on_hold'
-        ]);
+            $validator = Validator::make($request->all(), [
+                'progress' => 'required|integer|min:0|max:100',
+                'current_page' => 'nullable|integer|min:0',
+            ]);
 
-        $userBook->update([
-            'current_page' => $request->current_page,
-            'status' => $request->get('status', $userBook->status),
-            'finished_reading_at' => $request->status === 'read' ? now() : null
-        ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
 
-        // Actualizar contador de libros leídos del usuario
-        if ($request->status === 'read' && $userBook->wasChanged('status')) {
-            $userBook->user->increment('books_read');
+            $progress = $request->progress;
+            $currentPage = $request->current_page ?? 0;
+
+            $status = 'reading';
+            if ($progress === 0) {
+                $status = 'want_to_read';
+            } else if ($progress === 100) {
+                $status = 'read';
+            }
+
+            $updateData = [
+                'current_page' => $currentPage,
+                'status' => $status,
+            ];
+
+            if ($status === 'reading' && !$userBook->started_reading_at) {
+                $updateData['started_reading_at'] = now();
+            } elseif ($status === 'read' && !$userBook->finished_reading_at) {
+                $updateData['finished_reading_at'] = now();
+                if (!$userBook->started_reading_at) {
+                    $updateData['started_reading_at'] = now();
+                }
+            }
+
+            $userBook->update($updateData);
+
+            return response()->json([
+                'user_book' => $userBook->fresh(),
+                'message' => 'Progreso actualizado'
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Error al actualizar el progreso',
+                'error' => $th->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'user_book' => $userBook->fresh()->load(['book.authors']),
-            'message' => 'Progreso actualizado'
-        ]);
     }
 
     public function rateBook(Request $request, UserBook $userBook)
     {
-        $this->authorize('update', $userBook);
+        try {
+            // Check if user owns this book
+            if ($userBook->user_id !== $request->user()->id) {
+                return response()->json([
+                    'message' => 'No autorizado'
+                ], 403);
+            }
 
-        $request->validate([
-            'rating' => 'required|numeric|min:1|max:5',
-            'review' => 'nullable|string|max:1000'
-        ]);
+            $validator = Validator::make($request->all(), [
+                'rating' => 'required|integer|min:1|max:5'
+            ]);
 
-        $userBook->update([
-            'user_rating' => $request->rating,
-            'user_review' => $request->review
-        ]);
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
 
-        // Actualizar rating promedio del libro
-        $userBook->book->updateRating();
+            $userBook->update([
+                'user_rating' => $request->rating
+            ]);
 
-        return response()->json([
-            'user_book' => $userBook->fresh(),
-            'message' => 'Calificación guardada'
-        ]);
+            return response()->json([
+                'message' => 'Calificación actualizada correctamente',
+                'userBook' => $userBook->fresh()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al calificar el libro',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function removeBook(UserBook $userBook)
+    public function removeBook(Request $request, UserBook $userBook)
     {
-        $this->authorize('delete', $userBook);
+        try {
+            if ($userBook->user_id !== $request->user()->id) {
+                return response()->json([
+                    'message' => 'No autorizado'
+                ], 403);
+            }
 
-        $userBook->delete();
+            $userBook->delete();
 
-        return response()->json([
-            'message' => 'Libro eliminado de tu biblioteca'
-        ]);
+            return response()->json([
+                'message' => 'Libro eliminado de la biblioteca correctamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al eliminar el libro',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getStats(Request $request)
