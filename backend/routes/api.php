@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\API\BookNotesController;
+use App\Http\Controllers\API\ReadingProgressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,4 +51,8 @@ Route::prefix('books/{bookId}/notes')->middleware('auth:sanctum')->group(functio
     Route::get('/', [BookNotesController::class, 'index']);
     Route::post('/', [BookNotesController::class, 'store']);
     Route::delete('/{noteId}', [BookNotesController::class, 'destroy']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/reading-progress/{userBookId}', [ReadingProgressController::class, 'getProgress']);
 });

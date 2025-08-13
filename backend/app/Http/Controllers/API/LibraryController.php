@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\ReadingProgress;
 use App\Models\User;
 use App\Models\UserBook;
 use Illuminate\Http\Request;
@@ -95,6 +96,22 @@ class LibraryController extends Controller
 
             $userBook->update($updateData);
 
+            if ($currentPage > 0) {
+                $today = now()->toDateString();
+
+                ReadingProgress::updateOrCreate(
+                    [
+                        'user_book_id' => $userBook->id,
+                        'reading_date' => $today
+                    ],
+                    [
+                        'pages_read' => $currentPage,
+                        'total_pages' => $userBook->book->pages ?? 0,
+                        'progress_percentage' => ($userBook->book->pages > 0) ?
+                            round(($currentPage / $userBook->book->pages) * 100, 2) : 0
+                    ]
+                );
+            }
             return response()->json([
                 'user_book' => $userBook->fresh(),
                 'message' => 'Progreso actualizado'

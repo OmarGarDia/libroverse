@@ -48,6 +48,8 @@ const BookDetails = () => {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [notes, setNotes] = useState([]);
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+  const [progressHistory, setProgressHistory] = useState([]);
+  const [isLoadingProgress, setIsLoadingProgress] = useState(false);
 
   const mapStatus = (laravelStatus) => {
     switch (laravelStatus) {
@@ -111,8 +113,9 @@ const BookDetails = () => {
           setBook(mappedBook);
           setEditedBook({ ...mappedBook });
 
-          // Cargar notas reales de la API
           await loadNotes(id);
+
+          await loadProgressHistory(id);
         } catch (bookError) {
           console.error("Error cargando libro:", bookError);
           setBook(null);
@@ -173,7 +176,7 @@ const BookDetails = () => {
 
   const handleSaveChanges = async () => {
     try {
-      await libraryService.updateProgress(
+      const updateResponse = await libraryService.updateProgress(
         parseInt(id),
         editedBook.progress,
         editedBook.currentPage
@@ -183,10 +186,33 @@ const BookDetails = () => {
         await libraryService.rateBook(parseInt(id), editedBook.rating);
       }
 
-      setBook(editedBook);
+      const updateBookResponse = await libraryService.getBook(parseInt(id));
+      const updateMappedBook = {
+        ...editedBook,
+        dateStarted: updateBookResponse.started_reading_at,
+        dateFinished: updateBookResponse.finished_reading_at,
+        status: mapStatus(updateBookResponse.status),
+      };
+
+      setBook(updateMappedBook);
+      setEditedBook(updateMappedBook);
       setIsEditing(false);
+
+      await loadProgressHistory(parseInt(id));
     } catch (error) {
       console.error("Error guardando cambios:", error);
+    }
+  };
+
+  const loadProgressHistory = async (bookId) => {
+    try {
+      setIsLoadingProgress(true);
+      const history = await libraryService.getReadingProgress(bookId);
+      setProgressHistory(history);
+    } catch (error) {
+      console.error("Error cargando historial de progreso:", error);
+    } finally {
+      setIsLoadingProgress(false);
     }
   };
 
@@ -640,7 +666,7 @@ const BookDetails = () => {
                 Fechas
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 {currentBook.dateAdded && (
                   <div className="flex items-center gap-3">
                     <Calendar
@@ -710,6 +736,68 @@ const BookDetails = () => {
                         )}
                       </p>
                     </div>
+                  </div>
+                )}
+              </div>
+              {/* Historial de Progreso */}
+              <Separator className="my-4" />
+              <div>
+                <h4
+                  className="text-md font-semibold mb-3"
+                  style={{ color: "#2C3E50" }}
+                >
+                  Historial de Lectura
+                </h4>
+
+                {isLoadingProgress ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                    <p style={{ color: "#7F8C8D" }} className="text-sm">
+                      Cargando historial...
+                    </p>
+                  </div>
+                ) : progressHistory && progressHistory.length > 0 ? (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {progressHistory.map((entry, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center gap-2">
+                          <BookOpen
+                            className="h-4 w-4"
+                            style={{ color: "#7F8C8D" }}
+                          />
+                          <span
+                            className="text-sm"
+                            style={{ color: "#2C3E50" }}
+                          >
+                            {new Date(entry.reading_date).toLocaleDateString(
+                              "es-ES"
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className="text-sm font-medium"
+                            style={{ color: "#2C3E50" }}
+                          >
+                            {entry.pages_read} de {entry.total_pages} páginas
+                          </p>
+                          <p className="text-xs" style={{ color: "#7F8C8D" }}>
+                            {entry.progress_percentage}%
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /*TODO Que se ve cada cambio en el progreso del libro*/
+                  <div className="text-center py-4">
+                    <div className="text-2xl mb-2">📚</div>
+                    <p style={{ color: "#7F8C8D" }} className="text-sm">
+                      No hay historial de progreso aún
+                    </p>
                   </div>
                 )}
               </div>
