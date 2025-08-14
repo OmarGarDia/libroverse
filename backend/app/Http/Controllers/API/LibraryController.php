@@ -77,7 +77,7 @@ class LibraryController extends Controller
             if ($progress === 0) {
                 $status = 'want_to_read';
             } else if ($progress === 100) {
-                $status = 'read';
+                $status = 'completed';
             }
 
             $updateData = [
@@ -87,7 +87,7 @@ class LibraryController extends Controller
 
             if ($status === 'reading' && !$userBook->started_reading_at) {
                 $updateData['started_reading_at'] = now();
-            } elseif ($status === 'read' && !$userBook->finished_reading_at) {
+            } elseif ($status === 'completed' && !$userBook->finished_reading_at) {
                 $updateData['finished_reading_at'] = now();
                 if (!$userBook->started_reading_at) {
                     $updateData['started_reading_at'] = now();
@@ -127,7 +127,6 @@ class LibraryController extends Controller
     public function rateBook(Request $request, UserBook $userBook)
     {
         try {
-            // Check if user owns this book
             if ($userBook->user_id !== $request->user()->id) {
                 return response()->json([
                     'message' => 'No autorizado'
