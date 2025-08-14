@@ -140,6 +140,28 @@ class LibraryService {
 
     return book;
   }
+
+  async getReadingProgress(userBookId) {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reading-progress/${userBookId}`,
+        {
+          method: "GET",
+          headers: this.getHeaders(true),
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al cargar el historial de progreso");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching reading progress:", error);
+      throw error;
+    }
+  }
 }
 
 const libraryServiceInstance = new LibraryService();
