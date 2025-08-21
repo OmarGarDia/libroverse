@@ -36,6 +36,7 @@ Route::prefix('library')->middleware('auth:sanctum')->group(function () {
     Route::post('/books', [LibraryController::class, 'addBook']);
     Route::put('/books/{userBook}/progress', [LibraryController::class, 'updateProgress']);
     Route::put('/books/{userBook}/rating', [LibraryController::class, 'rateBook']);
+    Route::put('/books/{userBook}/status', [LibraryController::class, 'updateStatus']);
     Route::delete('/books/{userBook}', [LibraryController::class, 'removeBook']);
     Route::get('/stats', [LibraryController::class, 'getStats']);
 });

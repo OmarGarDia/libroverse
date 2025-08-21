@@ -208,4 +208,49 @@ class LibraryController extends Controller
             ->get()
             ->sum('book.pages');
     }
+
+    private function updateStatus(Request $request, Userbook $userBook)
+    {
+        try {
+            if ($userBook->user_id !== $request->user()->id) {
+                return response()->json([
+                    'message' => 'No autorizado'
+                ], 403);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'status' => 'required|in:want_to_read, reading, abandoned, on_hold, completed'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Error de validación',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $updateData = ['status' => $request->status];
+
+            if ($request->status === 'reading' && !$userBook->started_reading_at) {
+                $updateData['started_reading_at'] = now();
+            } elseif ($request->status === 'completed' && !$userBook->finished_reading_at) {
+                $updateData['finished_reading_at'] = now();
+                if (!$userBook->started_reading_at) {
+                    $updateData['started_reading_at'] = now();
+                }
+            }
+
+            $userBook->update($updateData);
+
+            return response()->json([
+                'message' => 'Estado actualizado correctamente',
+                'userBook' => $userBook->fresh()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al actualizar el estado',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

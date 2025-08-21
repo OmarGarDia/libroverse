@@ -51,16 +51,16 @@ const BookDetails = () => {
   const [progressHistory, setProgressHistory] = useState([]);
   const [isLoadingProgress, setIsLoadingProgress] = useState(false);
 
-  const mapStatus = (laravelStatus) => {
-    switch (laravelStatus) {
-      case "want_to_read":
-        return "por-leer";
-      case "reading":
-        return "leyendo";
-      case "read":
-        return "leidos";
+  const mapStatusToBackend = (frontendStatus) => {
+    switch (frontendStatus) {
+      case "por-leer":
+        return "want_to_read";
+      case "leyendo":
+        return "reading";
+      case "leidos":
+        return "completed";
       default:
-        return "por-leer";
+        return "want_to_read";
     }
   };
 
@@ -85,7 +85,7 @@ const BookDetails = () => {
               bookResponse.book?.cover_image_url ||
               bookResponse.book?.cover ||
               "/placeholder.svg",
-            status: mapStatus(bookResponse.status),
+            status: mapStatusToBackend(bookResponse.status),
             rating: bookResponse.user_rating
               ? parseFloat(bookResponse.user_rating)
               : null,
@@ -176,7 +176,7 @@ const BookDetails = () => {
 
   const handleSaveChanges = async () => {
     try {
-      const updateResponse = await libraryService.updateProgress(
+      await libraryService.updateProgress(
         parseInt(id),
         editedBook.progress,
         editedBook.currentPage
@@ -186,12 +186,17 @@ const BookDetails = () => {
         await libraryService.rateBook(parseInt(id), editedBook.rating);
       }
 
+      if (editedBook.status !== book.status) {
+        const backendStatus = mapStatusToBackend(editedBook.status);
+        await libraryService.updateBookStatus(parseInt(id), backendStatus);
+      }
+
       const updateBookResponse = await libraryService.getBook(parseInt(id));
       const updateMappedBook = {
         ...editedBook,
         dateStarted: updateBookResponse.started_reading_at,
         dateFinished: updateBookResponse.finished_reading_at,
-        status: mapStatus(updateBookResponse.status),
+        status: mapStatusToBackend(updateBookResponse.status),
       };
 
       setBook(updateMappedBook);
@@ -230,11 +235,17 @@ const BookDetails = () => {
       currentPage: validPage,
     }));
 
-    let newStatus = "leyendo";
-    if (newProgress === 0) newStatus = "por-leer";
-    else if (newProgress === 100) newStatus = "leidos";
-
-    setEditedBook((prev) => ({ ...prev, status: newStatus }));
+    if (newProgress === 0 && editedBook.status !== "por-leer") {
+      setEditedBook((prev) => ({ ...prev, status: "por-leer" }));
+    } else if (
+      newProgress > 0 &&
+      newProgress < 100 &&
+      editedBook.status === "por-leer"
+    ) {
+      setEditedBook((prev) => ({ ...prev, status: "leyendo" }));
+    } else if (newProgress === 100 && editedBook.status !== "completado") {
+      setEditedBook((prev) => ({ ...prev, status: "completado" }));
+    }
   };
 
   const handleRatingChange = (rating) => {

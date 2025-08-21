@@ -58,7 +58,7 @@ class UserBook extends Model
 
     public function scopeRead($query)
     {
-        return $query->where('status', 'read');
+        return $query->where('status', 'completed');
     }
 
     public function scopeFavorites($query)

@@ -162,6 +162,24 @@ class LibraryService {
       throw error;
     }
   }
+
+  async updateBookStatus(userBookId, status) {
+    const response = await fetch(
+      `${API_BASE_URL}/library/books/${userBookId}/status`,
+      {
+        method: "PUT",
+        headers: this.getHeaders(true),
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error updating book status:", errorText);
+      throw new Error("Error al actualizar el estado del libro");
+    }
+  }
 }
 
 const libraryServiceInstance = new LibraryService();
