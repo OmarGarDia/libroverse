@@ -7,6 +7,7 @@ import {
   Settings,
   MessageCircle,
   LogOut,
+  Users,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Link } from "react-router-dom";
@@ -36,6 +37,7 @@ export const Navigation = ({
     { label: "Inicio", href: "/" },
     { label: "Explorar", href: "#" },
     { label: "Mis Libros", href: "#" },
+    { label: "Amigos", href: "/amigos" },
     { label: "Comunidad", href: "#" },
   ];
 
@@ -168,6 +170,27 @@ export const Navigation = ({
                       <User className="w-4 h-4 mr-3" />
                       Mi Perfil
                     </Link>
+                    <Link
+                      to="/amigos"
+                      className="flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200"
+                      style={{ color: "#2C3E50" }}
+                      onMouseEnter={(e) => {
+                        const target = e.target;
+                        target.style.backgroundColor =
+                          "rgba(76, 182, 172, 0.1)";
+                      }}
+                      onMouseLeave={(e) => {
+                        const target = e.target;
+                        target.style.backgroundColor = "transparent";
+                      }}
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Users
+                        className="w-4 h-4 mr-3"
+                        style={{ color: "#4DB6AC" }}
+                      />
+                      Amigos
+                    </Link>
                   </div>
                   <div
                     className="border-t py-1"
@@ -269,6 +292,7 @@ export const Navigation = ({
                           label: "Mensajes",
                           href: "/mensajes",
                         },
+                        { icon: Users, label: "Amigos", href: "/amigos" },
                       ].map(({ icon: Icon, label, href }) => (
                         <Link
                           key={label}

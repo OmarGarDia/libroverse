@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\API\BookNotesController;
+use App\Http\Controllers\API\FriendshipController;
 use App\Http\Controllers\API\ReadingProgressController;
 
 /*
@@ -56,4 +57,15 @@ Route::prefix('books/{bookId}/notes')->middleware('auth:sanctum')->group(functio
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reading-progress/{userBookId}', [ReadingProgressController::class, 'getProgress']);
+});
+
+
+Route::middleware('auth:sanctum')->prefix('friends')->group(function () {
+    Route::get('/', [FriendshipController::class, 'index']);
+    Route::get('/search', [FriendshipController::class, 'search']);
+    Route::post('/request', [FriendshipController::class, 'sendRequest']);
+    Route::post('/accept/{friendshipId}', [FriendshipController::class, 'acceptRequest']);
+    Route::post('/reject/{friendshipId}', [FriendshipController::class, 'rejectRequest']);
+    Route::get('/pending', [FriendshipController::class, 'pendingRequests']);
+    Route::delete('/remove/{friendId}', [FriendshipController::class, 'removeFriend']);
 });

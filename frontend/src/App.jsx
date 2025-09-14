@@ -9,6 +9,8 @@ import ProfileWrapper from "./components/ProfileWrapper";
 import { AuthProvider } from "./context/AuthContext";
 import Library from "./components/pages/Library";
 import BookDetails from "./components/pages/BookDetails";
+import FriendsWrapper from "./components/FriendsWrapper";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -25,6 +27,7 @@ const App = () => (
             <Route path="/biblioteca" element={<Library />} />
             <Route path="/mis-libros" element={<Library />} />
             <Route path="/libro/:id" element={<BookDetails />} />
+            <Route path="/amigos" element={<FriendsWrapper />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
