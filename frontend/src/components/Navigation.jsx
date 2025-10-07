@@ -176,8 +176,8 @@ export const Navigation = ({
                       style={{ color: "#2C3E50" }}
                       onMouseEnter={(e) => {
                         const target = e.target;
-                        target.style.backgroundColor =
-                          "rgba(76, 182, 172, 0.1)";
+                        target.style.backgroundColor = "#34495E";
+                        target.style.color = "#4DB6AC";
                       }}
                       onMouseLeave={(e) => {
                         const target = e.target;

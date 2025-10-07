@@ -3,20 +3,27 @@ import { authService } from "./authService";
 const API_BASE_URL = "http://localhost:8000/api";
 
 export const friendshipService = {
-  /**
-   * Obtener lista de amigos
-   */
   async getFriends() {
     try {
+      console.log("Making request to:", `${API_BASE_URL}/friends`);
+      console.log("Headers:", authService.getHeaders(true));
+
       const response = await fetch(`${API_BASE_URL}/friends`, {
         headers: authService.getHeaders(true),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
       if (!response.ok) {
-        throw new Error("Error al obtener amigos");
+        const errorText = await response.text();
+        console.error("Response error:", errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log("Friends data:", data);
+      return data;
     } catch (error) {
       console.error("Error getting friends:", error);
       throw error;
@@ -122,15 +129,23 @@ export const friendshipService = {
    */
   async getPendingRequests() {
     try {
+      console.log("Making request to:", `${API_BASE_URL}/friends/pending`);
+
       const response = await fetch(`${API_BASE_URL}/friends/pending`, {
         headers: authService.getHeaders(true),
       });
 
+      console.log("Pending requests response status:", response.status);
+
       if (!response.ok) {
-        throw new Error("Error al obtener solicitudes pendientes");
+        const errorText = await response.text();
+        console.error("Pending requests error:", errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log("Pending requests data:", data);
+      return data;
     } catch (error) {
       console.error("Error getting pending requests:", error);
       throw error;

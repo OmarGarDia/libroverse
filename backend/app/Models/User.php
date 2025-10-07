@@ -29,6 +29,9 @@ class User extends Authenticatable
         'location',
         'reading_preferences',
         'books_read',
+        'reading_goal',
+        'reading_goal_year',
+        'books_read_current_year',
         'is_active',
     ];
 
@@ -78,5 +81,32 @@ class User extends Authenticatable
     public function bookNote()
     {
         return $this->hasMany(BookNote::class);
+    }
+
+    public function userBooks()
+    {
+        return $this->hasMany(UserBook::class);
+    }
+
+    public function receivedFriendRequests()
+    {
+        return $this->hasMany(Friendship::class, 'friend_id');
+    }
+
+    public function friends()
+    {
+        $sentFriends = $this->sentFriendRequests()
+            ->where('status', 'accepted')
+            ->with('friend')
+            ->get()
+            ->pluck('friend');
+
+        $receivedFriends = $this->receivedFriendRequests()
+            ->where('status', 'accepted')
+            ->with('user')
+            ->get()
+            ->pluck('user');
+
+        return $sentFriends->merge($receivedFriends);
     }
 }

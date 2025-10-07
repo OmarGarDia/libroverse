@@ -1,15 +1,18 @@
 const API_BASE_URL = "http://localhost:8000/api";
 
 class AuthService {
-  getHeaders(includeAuth = false) {
+  getHeaders(includeAuth = false, includeCsrf = false) {
     const headers = {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
 
-    const csrfToken = this.getCookie("XSRF-TOKEN");
-    if (csrfToken) {
-      headers["X-XSRF-TOKEN"] = decodeURIComponent(csrfToken);
+    if (includeCsrf) {
+      const csrfToken = this.getCookie("XSRF-TOKEN");
+
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = decodeURIComponent(csrfToken);
+      }
     }
 
     if (includeAuth) {
@@ -37,7 +40,7 @@ class AuthService {
 
     const response = await fetch(`${API_BASE_URL}/register`, {
       method: "POST",
-      headers: this.getHeaders(),
+      headers: this.getHeaders(false, true),
       credentials: "include",
       body: JSON.stringify(data),
     });
@@ -78,7 +81,7 @@ class AuthService {
 
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: "POST",
-      headers: this.getHeaders(),
+      headers: this.getHeaders(false, true),
       credentials: "include",
       body: JSON.stringify(data),
     });
